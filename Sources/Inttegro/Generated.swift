@@ -4389,8 +4389,6 @@ public struct FinalizeOrderRequest: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct FinancialAccount: Codable, Sendable, Equatable {
-    public var appCustomerLocalFingerprint: String?
-    public var appLocalFingerprint: String?
     public var archivedAt: String?
     public var createdAt: String
     public var currency: String
@@ -4404,7 +4402,6 @@ public struct FinancialAccount: Codable, Sendable, Equatable {
     public var reference: String?
     public var supplied: ResourceSupply?
     public var type: FinancialAccountType
-    public var universalFingerprint: String?
     public var verification: FinancialAccountVerification?
     public var bankAccount: FinancialAccountBank?
     public var disconnectedAt: String?
@@ -4413,8 +4410,6 @@ public struct FinancialAccount: Codable, Sendable, Equatable {
     public var wallet: FinancialAccountWallet?
 
     public init(
-        appCustomerLocalFingerprint: String? = nil,
-        appLocalFingerprint: String? = nil,
         archivedAt: String? = nil,
         createdAt: String,
         currency: String,
@@ -4428,7 +4423,6 @@ public struct FinancialAccount: Codable, Sendable, Equatable {
         reference: String? = nil,
         supplied: ResourceSupply? = nil,
         type: FinancialAccountType,
-        universalFingerprint: String? = nil,
         verification: FinancialAccountVerification? = nil,
         bankAccount: FinancialAccountBank? = nil,
         disconnectedAt: String? = nil,
@@ -4436,8 +4430,6 @@ public struct FinancialAccount: Codable, Sendable, Equatable {
         owner: FinancialAccountOwner? = nil,
         wallet: FinancialAccountWallet? = nil
     ) {
-        self.appCustomerLocalFingerprint = appCustomerLocalFingerprint
-        self.appLocalFingerprint = appLocalFingerprint
         self.archivedAt = archivedAt
         self.createdAt = createdAt
         self.currency = currency
@@ -4451,7 +4443,6 @@ public struct FinancialAccount: Codable, Sendable, Equatable {
         self.reference = reference
         self.supplied = supplied
         self.type = type
-        self.universalFingerprint = universalFingerprint
         self.verification = verification
         self.bankAccount = bankAccount
         self.disconnectedAt = disconnectedAt
@@ -4461,8 +4452,6 @@ public struct FinancialAccount: Codable, Sendable, Equatable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case appCustomerLocalFingerprint = "app_customer_local_fingerprint"
-        case appLocalFingerprint = "app_local_fingerprint"
         case archivedAt = "archived_at"
         case createdAt = "created_at"
         case currency
@@ -4476,7 +4465,6 @@ public struct FinancialAccount: Codable, Sendable, Equatable {
         case reference
         case supplied
         case type
-        case universalFingerprint = "universal_fingerprint"
         case verification
         case bankAccount = "bank_account"
         case disconnectedAt = "disconnected_at"
@@ -7433,8 +7421,6 @@ public struct PaymentAttempt: Codable, Sendable, Equatable {
 /// Typed Inttegro domain value.
 public struct PaymentMethod: Codable, Sendable, Equatable {
     public var active: Bool
-    public var appCustomerLocalFingerprint: String?
-    public var appLocalFingerprint: String?
     public var archivedAt: String?
     public var bankAccount: PaymentMethodBankAccount?
     public var createdAt: String
@@ -7447,14 +7433,11 @@ public struct PaymentMethod: Codable, Sendable, Equatable {
     public var owner: PaymentMethodOwner?
     public var type: PaymentMethodType
     public var supplied: PaymentMethodSupplied?
-    public var universalFingerprint: String?
     public var verification: PaymentMethodVerification?
     public var verifiedAt: String?
 
     public init(
         active: Bool,
-        appCustomerLocalFingerprint: String? = nil,
-        appLocalFingerprint: String? = nil,
         archivedAt: String? = nil,
         bankAccount: PaymentMethodBankAccount? = nil,
         createdAt: String,
@@ -7467,13 +7450,10 @@ public struct PaymentMethod: Codable, Sendable, Equatable {
         owner: PaymentMethodOwner? = nil,
         type: PaymentMethodType,
         supplied: PaymentMethodSupplied? = nil,
-        universalFingerprint: String? = nil,
         verification: PaymentMethodVerification? = nil,
         verifiedAt: String? = nil
     ) {
         self.active = active
-        self.appCustomerLocalFingerprint = appCustomerLocalFingerprint
-        self.appLocalFingerprint = appLocalFingerprint
         self.archivedAt = archivedAt
         self.bankAccount = bankAccount
         self.createdAt = createdAt
@@ -7486,15 +7466,12 @@ public struct PaymentMethod: Codable, Sendable, Equatable {
         self.owner = owner
         self.type = type
         self.supplied = supplied
-        self.universalFingerprint = universalFingerprint
         self.verification = verification
         self.verifiedAt = verifiedAt
     }
 
     private enum CodingKeys: String, CodingKey {
         case active
-        case appCustomerLocalFingerprint = "app_customer_local_fingerprint"
-        case appLocalFingerprint = "app_local_fingerprint"
         case archivedAt = "archived_at"
         case bankAccount = "bank_account"
         case createdAt = "created_at"
@@ -7507,7 +7484,6 @@ public struct PaymentMethod: Codable, Sendable, Equatable {
         case owner
         case type
         case supplied
-        case universalFingerprint = "universal_fingerprint"
         case verification
         case verifiedAt = "verified_at"
     }
