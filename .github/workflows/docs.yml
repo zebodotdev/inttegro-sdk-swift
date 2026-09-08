@@ -30,13 +30,14 @@ jobs:
           fetch-depth: 0
           ref: ${{ env.DOC_VERSION }}
       - name: Build API documentation
-        run: >-
-          swift package --allow-writing-to-directory build/api-docs
-          generate-documentation
-          --target Inttegro
-          --output-path build/api-docs
-          --transform-for-static-hosting
-          --hosting-base-path "${DOC_VERSION}"
+        run: |
+          mkdir -p build
+          swift package --allow-writing-to-directory build/api-docs \
+            generate-documentation \
+            --target Inttegro \
+            --output-path build/api-docs \
+            --transform-for-static-hosting \
+            --hosting-base-path "${DOC_VERSION}"
       - name: Publish versioned documentation
         shell: bash
         run: |
