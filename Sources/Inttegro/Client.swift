@@ -25,8 +25,8 @@ public struct CreateFileRequest: Sendable {
     public let data: Data
     public let purpose: String
     public let title: String?
-    public let customData: [String: String]?
-    public init(fileName: String, data: Data, purpose: String, title: String? = nil, customData: [String: String]? = nil) {
+    public let customData: CustomData?
+    public init(fileName: String, data: Data, purpose: String, title: String? = nil, customData: CustomData? = nil) {
         self.fileName = fileName; self.data = data; self.purpose = purpose; self.title = title; self.customData = customData
     }
 }
