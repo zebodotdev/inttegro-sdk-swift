@@ -735,7 +735,7 @@ public typealias MessageTemplateAttachmentIDs = [String]
 public typealias MessageTemplateAttachmentIDsInput = [String]
 
 /// A typed Inttegro value.
-public typealias MessageTemplateVariablesInput = [String: JSONValue]
+public typealias MessageTemplateVariablesInput = JSONData
 
 public enum OrderLineItem: Codable, Sendable, Equatable {
     case orderProductLineItem(OrderProductLineItem)
@@ -1797,7 +1797,7 @@ public struct CatalogProductWithPriceReferenceInput: Codable, Sendable, Equatabl
 /// Typed Inttegro domain value.
 public struct Chime: Codable, Sendable, Equatable {
     public var createdAt: String
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var customerId: String?
     public var email: ChimeEmailMessage?
     public var fullMessage: String
@@ -1810,7 +1810,7 @@ public struct Chime: Codable, Sendable, Equatable {
 
     public init(
         createdAt: String,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         customerId: String? = nil,
         email: ChimeEmailMessage? = nil,
         fullMessage: String,
@@ -1951,7 +1951,7 @@ public struct ChimeEmailMessage: Codable, Sendable, Equatable {
     public var html: String?
     public var from: ChimeEmailMailbox?
     public var replyTo: ChimeEmailMailbox?
-    public var headers: [String: String]?
+    public var headers: MessageHeaders?
     public var safety: ChimeEmailSafetyResult?
     public var schema: ChimeEmailSchemaMarkup?
 
@@ -1961,7 +1961,7 @@ public struct ChimeEmailMessage: Codable, Sendable, Equatable {
         html: String? = nil,
         from: ChimeEmailMailbox? = nil,
         replyTo: ChimeEmailMailbox? = nil,
-        headers: [String: String]? = nil,
+        headers: MessageHeaders? = nil,
         safety: ChimeEmailSafetyResult? = nil,
         schema: ChimeEmailSchemaMarkup? = nil
     ) {
@@ -1991,7 +1991,7 @@ public struct ChimeEmailMessage: Codable, Sendable, Equatable {
 public struct ChimeEmailMessageInput: Codable, Sendable, Equatable {
     public var html: String?
     public var replyTo: String?
-    public var headers: [String: String]?
+    public var headers: MessageHeaders?
     public var subject: String
     public var text: String
     public var from: ChimeEmailMailboxInput
@@ -1999,7 +1999,7 @@ public struct ChimeEmailMessageInput: Codable, Sendable, Equatable {
     public init(
         html: String? = nil,
         replyTo: String? = nil,
-        headers: [String: String]? = nil,
+        headers: MessageHeaders? = nil,
         subject: String,
         text: String,
         from: ChimeEmailMailboxInput
@@ -2091,11 +2091,11 @@ public struct ChimeEmailScannedLink: Codable, Sendable, Equatable {
 /// Typed Inttegro domain value.
 public struct ChimeEmailSchemaMarkup: Codable, Sendable, Equatable {
     public var kind: ChimeEmailSchemaKind?
-    public var jsonLd: [String: JSONValue]?
+    public var jsonLd: JSONData?
 
     public init(
         kind: ChimeEmailSchemaKind? = nil,
-        jsonLd: [String: JSONValue]? = nil
+        jsonLd: JSONData? = nil
     ) {
         self.kind = kind
         self.jsonLd = jsonLd
@@ -2567,7 +2567,7 @@ public struct CreateApplicationRequestRelationshipPolicy: Codable, Sendable, Equ
 /// Typed Inttegro request parameters.
 public struct CreateCustomerRequest: Codable, Sendable, Equatable {
     public var billingAddress: CustomerAddressInput?
-    public var customData: [String: JSONValue]?
+    public var customData: CustomDataInput?
     public var emailAddress: String?
     public var phoneNumber: String?
     public var reference: String?
@@ -2577,7 +2577,7 @@ public struct CreateCustomerRequest: Codable, Sendable, Equatable {
 
     public init(
         billingAddress: CustomerAddressInput? = nil,
-        customData: [String: JSONValue]? = nil,
+        customData: CustomDataInput? = nil,
         emailAddress: String? = nil,
         phoneNumber: String? = nil,
         reference: String? = nil,
@@ -2644,7 +2644,7 @@ public struct CreateFileLinkRequest: Codable, Sendable, Equatable {
     public var delivery: FileLinkDeliveryInput?
     public var access: FileLinkAccessRequest?
     public var createdBy: FileActorInput?
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var expiresAt: String?
     public var fileId: String
 
@@ -2652,7 +2652,7 @@ public struct CreateFileLinkRequest: Codable, Sendable, Equatable {
         delivery: FileLinkDeliveryInput? = nil,
         access: FileLinkAccessRequest? = nil,
         createdBy: FileActorInput? = nil,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         expiresAt: String? = nil,
         fileId: String
     ) {
@@ -2687,7 +2687,7 @@ public struct CreateOrderExistingCustomerInput: Codable, Sendable, Equatable {
     public var checkoutSettings: CreateOrderExistingCustomerInputCheckoutSettings?
     public var invoiceSettings: InvoiceSettingsInput?
     public var payoutSettings: OrderPayoutSettingsRequest?
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var billingDetails: BillingDetailsInput?
     public var shipping: ShippingInput?
     public var customerId: String
@@ -2705,7 +2705,7 @@ public struct CreateOrderExistingCustomerInput: Codable, Sendable, Equatable {
         checkoutSettings: CreateOrderExistingCustomerInputCheckoutSettings? = nil,
         invoiceSettings: InvoiceSettingsInput? = nil,
         payoutSettings: OrderPayoutSettingsRequest? = nil,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         billingDetails: BillingDetailsInput? = nil,
         shipping: ShippingInput? = nil,
         customerId: String,
@@ -2795,7 +2795,7 @@ public struct CreateOrderNewCustomerInput: Codable, Sendable, Equatable {
     public var checkoutSettings: CreateOrderNewCustomerInputCheckoutSettings?
     public var invoiceSettings: InvoiceSettingsInput?
     public var payoutSettings: OrderPayoutSettingsRequest?
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var billingDetails: BillingDetailsInput?
     public var shipping: ShippingInput?
     public var paymentMethodData: PaymentMethodDataInput?
@@ -2813,7 +2813,7 @@ public struct CreateOrderNewCustomerInput: Codable, Sendable, Equatable {
         checkoutSettings: CreateOrderNewCustomerInputCheckoutSettings? = nil,
         invoiceSettings: InvoiceSettingsInput? = nil,
         payoutSettings: OrderPayoutSettingsRequest? = nil,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         billingDetails: BillingDetailsInput? = nil,
         shipping: ShippingInput? = nil,
         paymentMethodData: PaymentMethodDataInput? = nil,
@@ -2905,7 +2905,7 @@ public struct CreateProductRequest: Codable, Sendable, Equatable {
     public var media: ProductMediaInput?
     public var attributes: [ProductAttributeInput]?
     public var publish: Bool?
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var type: ProductType
     public var name: String
 
@@ -2921,7 +2921,7 @@ public struct CreateProductRequest: Codable, Sendable, Equatable {
         media: ProductMediaInput? = nil,
         attributes: [ProductAttributeInput]? = nil,
         publish: Bool? = nil,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         type: ProductType,
         name: String
     ) {
@@ -3120,7 +3120,7 @@ public struct CreateRefundLineItemInput: Codable, Sendable, Equatable {
 
 /// Typed Inttegro request parameters.
 public struct CreateRefundRequest: Codable, Sendable, Equatable {
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var reasonDetails: String?
     public var reference: String?
     public var requestMeta: RefundRequestMetaInput?
@@ -3129,7 +3129,7 @@ public struct CreateRefundRequest: Codable, Sendable, Equatable {
     public var reason: RefundReason
 
     public init(
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         reasonDetails: String? = nil,
         reference: String? = nil,
         requestMeta: RefundRequestMetaInput? = nil,
@@ -3195,7 +3195,7 @@ public struct CreateUploadRequestRequest: Codable, Sendable, Equatable {
     public var resource: FileResourceInput?
     public var requester: FileActorInput?
     public var attempts: UploadRequestAttemptsRequest?
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var expiresAt: String?
     public var purpose: String
 
@@ -3207,7 +3207,7 @@ public struct CreateUploadRequestRequest: Codable, Sendable, Equatable {
         resource: FileResourceInput? = nil,
         requester: FileActorInput? = nil,
         attempts: UploadRequestAttemptsRequest? = nil,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         expiresAt: String? = nil,
         purpose: String
     ) {
@@ -3292,10 +3292,10 @@ public struct CurrencyBalanceSnapshotReserved: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct Customer: Codable, Sendable, Equatable {
-    public var balance: [String: CustomerBalanceValue]
+    public var balance: CustomerBalance
     public var billingAddress: CustomerAddress?
     public var createdAt: String
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var emailAddress: String?
     public var guest: Bool
     public var id: String
@@ -3308,10 +3308,10 @@ public struct Customer: Codable, Sendable, Equatable {
     public var updatedAt: String?
 
     public init(
-        balance: [String: CustomerBalanceValue],
+        balance: CustomerBalance,
         billingAddress: CustomerAddress? = nil,
         createdAt: String,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         emailAddress: String? = nil,
         guest: Bool,
         id: String,
@@ -3465,14 +3465,14 @@ public struct CustomerBalanceValue: Codable, Sendable, Equatable {
 /// Typed Inttegro request parameters.
 public struct CustomerDataInput: Codable, Sendable, Equatable {
     public var reference: String?
-    public var customData: [String: JSONValue]?
+    public var customData: CustomDataInput?
     public var name: String
     public var emailAddress: String
     public var phoneNumber: String
 
     public init(
         reference: String? = nil,
-        customData: [String: JSONValue]? = nil,
+        customData: CustomDataInput? = nil,
         name: String,
         emailAddress: String,
         phoneNumber: String
@@ -3610,7 +3610,7 @@ public struct FeeDetailsInput: Codable, Sendable, Equatable {
     public var label: String?
     public var taxCode: String?
     public var description: String?
-    public var customData: [String: JSONValue]?
+    public var customData: CustomDataInput?
     public var amount: AmountParams
 
     public init(
@@ -3618,7 +3618,7 @@ public struct FeeDetailsInput: Codable, Sendable, Equatable {
         label: String? = nil,
         taxCode: String? = nil,
         description: String? = nil,
-        customData: [String: JSONValue]? = nil,
+        customData: CustomDataInput? = nil,
         amount: AmountParams
     ) {
         self.id = id
@@ -3670,8 +3670,8 @@ public struct File: Codable, Sendable, Equatable {
     public var storage: PublicFileStorage
     public var delivery: FileDeliveryDetails?
     public var latestError: FileLatestError?
-    public var customData: [String: String]?
-    public var metadata: [String: String]?
+    public var customData: CustomData?
+    public var metadata: FileMetadata?
     public var createdAt: String
     public var updatedAt: String
     public var availableAt: String?
@@ -3693,8 +3693,8 @@ public struct File: Codable, Sendable, Equatable {
         storage: PublicFileStorage,
         delivery: FileDeliveryDetails? = nil,
         latestError: FileLatestError? = nil,
-        customData: [String: String]? = nil,
-        metadata: [String: String]? = nil,
+        customData: CustomData? = nil,
+        metadata: FileMetadata? = nil,
         createdAt: String,
         updatedAt: String,
         availableAt: String? = nil,
@@ -3866,8 +3866,8 @@ public struct FileLink: Codable, Sendable, Equatable {
     public var access: FileLinkAccess
     public var createdBy: FileLinkActor
     public var revokedBy: FileLinkActor?
-    public var customData: [String: String]?
-    public var metadata: [String: String]?
+    public var customData: CustomData?
+    public var metadata: FileMetadata?
     public var createdAt: String
     public var updatedAt: String
     public var expiresAt: String
@@ -3884,8 +3884,8 @@ public struct FileLink: Codable, Sendable, Equatable {
         access: FileLinkAccess,
         createdBy: FileLinkActor,
         revokedBy: FileLinkActor? = nil,
-        customData: [String: String]? = nil,
-        metadata: [String: String]? = nil,
+        customData: CustomData? = nil,
+        metadata: FileMetadata? = nil,
         createdAt: String,
         updatedAt: String,
         expiresAt: String,
@@ -4394,7 +4394,7 @@ public struct FinancialAccount: Codable, Sendable, Equatable {
     public var archivedAt: String?
     public var createdAt: String
     public var currency: String
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var description: String?
     public var id: String
     public var institution: FinancialInstitution?
@@ -4405,10 +4405,10 @@ public struct FinancialAccount: Codable, Sendable, Equatable {
     public var supplied: ResourceSupply?
     public var type: FinancialAccountType
     public var universalFingerprint: String?
-    public var verification: [String: JSONValue]?
+    public var verification: FinancialAccountVerification?
     public var bankAccount: FinancialAccountBank?
     public var disconnectedAt: String?
-    public var doshAccount: [String: JSONValue]?
+    public var doshAccount: DoshAccount?
     public var owner: FinancialAccountOwner?
     public var wallet: FinancialAccountWallet?
 
@@ -4418,7 +4418,7 @@ public struct FinancialAccount: Codable, Sendable, Equatable {
         archivedAt: String? = nil,
         createdAt: String,
         currency: String,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         description: String? = nil,
         id: String,
         institution: FinancialInstitution? = nil,
@@ -4429,10 +4429,10 @@ public struct FinancialAccount: Codable, Sendable, Equatable {
         supplied: ResourceSupply? = nil,
         type: FinancialAccountType,
         universalFingerprint: String? = nil,
-        verification: [String: JSONValue]? = nil,
+        verification: FinancialAccountVerification? = nil,
         bankAccount: FinancialAccountBank? = nil,
         disconnectedAt: String? = nil,
-        doshAccount: [String: JSONValue]? = nil,
+        doshAccount: DoshAccount? = nil,
         owner: FinancialAccountOwner? = nil,
         wallet: FinancialAccountWallet? = nil
     ) {
@@ -4550,7 +4550,7 @@ public struct FinancialAccountBank: Codable, Sendable, Equatable {
 
 /// Typed Inttegro request parameters.
 public struct FinancialAccountBankRequest: Codable, Sendable, Equatable {
-    public var customData: [String: JSONValue]?
+    public var customData: CustomDataInput?
     public var description: String?
     public var owner: FinancialAccountOwnerInput?
     public var pullConfiguration: FinancialAccountBankRequestPullConfiguration?
@@ -4562,7 +4562,7 @@ public struct FinancialAccountBankRequest: Codable, Sendable, Equatable {
     public var bankAccount: FinancialAccountBankRequestBankAccount
 
     public init(
-        customData: [String: JSONValue]? = nil,
+        customData: CustomDataInput? = nil,
         description: String? = nil,
         owner: FinancialAccountOwnerInput? = nil,
         pullConfiguration: FinancialAccountBankRequestPullConfiguration? = nil,
@@ -4696,7 +4696,7 @@ public struct FinancialAccountDisableRequest: Codable, Sendable, Equatable {
 
 /// Typed Inttegro request parameters.
 public struct FinancialAccountDoshRequest: Codable, Sendable, Equatable {
-    public var customData: [String: JSONValue]?
+    public var customData: CustomDataInput?
     public var description: String?
     public var pullConfiguration: FinancialAccountDoshRequestPullConfiguration?
     public var pushConfiguration: FinancialAccountDoshRequestPushConfiguration?
@@ -4705,10 +4705,10 @@ public struct FinancialAccountDoshRequest: Codable, Sendable, Equatable {
     public var owner: FinancialAccountOwnerInput
     public var reference: String
     public var type: FinancialAccountType
-    public var doshAccount: [String: JSONValue]
+    public var doshAccount: DoshAccount
 
     public init(
-        customData: [String: JSONValue]? = nil,
+        customData: CustomDataInput? = nil,
         description: String? = nil,
         pullConfiguration: FinancialAccountDoshRequestPullConfiguration? = nil,
         pushConfiguration: FinancialAccountDoshRequestPushConfiguration? = nil,
@@ -4717,7 +4717,7 @@ public struct FinancialAccountDoshRequest: Codable, Sendable, Equatable {
         owner: FinancialAccountOwnerInput,
         reference: String,
         type: FinancialAccountType,
-        doshAccount: [String: JSONValue]
+        doshAccount: DoshAccount
     ) {
         self.customData = customData
         self.description = description
@@ -5032,7 +5032,7 @@ public struct FinancialAccountPushConfiguration: Codable, Sendable, Equatable {
 
 /// Typed Inttegro request parameters.
 public struct FinancialAccountUpdateRequest: Codable, Sendable, Equatable {
-    public var customData: [String: JSONValue]?
+    public var customData: CustomDataPatch?
     public var description: String?
     public var label: String?
     public var owner: FinancialAccountOwnerUpdateInput?
@@ -5040,7 +5040,7 @@ public struct FinancialAccountUpdateRequest: Codable, Sendable, Equatable {
     public var accountId: String
 
     public init(
-        customData: [String: JSONValue]? = nil,
+        customData: CustomDataPatch? = nil,
         description: String? = nil,
         label: String? = nil,
         owner: FinancialAccountOwnerUpdateInput? = nil,
@@ -5109,7 +5109,7 @@ public struct FinancialAccountWalletMobileMoney: Codable, Sendable, Equatable {
 
 /// Typed Inttegro request parameters.
 public struct FinancialAccountWalletRequest: Codable, Sendable, Equatable {
-    public var customData: [String: JSONValue]?
+    public var customData: CustomDataInput?
     public var description: String?
     public var pullConfiguration: FinancialAccountWalletRequestPullConfiguration?
     public var pushConfiguration: FinancialAccountWalletRequestPushConfiguration?
@@ -5121,7 +5121,7 @@ public struct FinancialAccountWalletRequest: Codable, Sendable, Equatable {
     public var wallet: FinancialAccountWalletRequestWallet
 
     public init(
-        customData: [String: JSONValue]? = nil,
+        customData: CustomDataInput? = nil,
         description: String? = nil,
         pullConfiguration: FinancialAccountWalletRequestPullConfiguration? = nil,
         pushConfiguration: FinancialAccountWalletRequestPushConfiguration? = nil,
@@ -5459,7 +5459,7 @@ public struct InitiateOTPRequest: Codable, Sendable, Equatable {
 /// Typed Inttegro request parameters.
 public struct InlineProductDetailsInput: Codable, Sendable, Equatable {
     public var about: String?
-    public var customData: [String: JSONValue]?
+    public var customData: CustomDataInput?
     public var reference: String?
     public var taxCode: String?
     public var name: String
@@ -5469,7 +5469,7 @@ public struct InlineProductDetailsInput: Codable, Sendable, Equatable {
 
     public init(
         about: String? = nil,
-        customData: [String: JSONValue]? = nil,
+        customData: CustomDataInput? = nil,
         reference: String? = nil,
         taxCode: String? = nil,
         name: String,
@@ -5504,13 +5504,13 @@ public struct InvoiceSettings: Codable, Sendable, Equatable {
     public var number: String?
     public var memo: String?
     public var footer: String?
-    public var customData: [String: String]?
+    public var customData: CustomData?
 
     public init(
         number: String? = nil,
         memo: String? = nil,
         footer: String? = nil,
-        customData: [String: String]? = nil
+        customData: CustomData? = nil
     ) {
         self.number = number
         self.memo = memo
@@ -5531,13 +5531,13 @@ public struct InvoiceSettingsInput: Codable, Sendable, Equatable {
     public var number: String?
     public var memo: String?
     public var footer: String?
-    public var customData: [String: String]?
+    public var customData: CustomData?
 
     public init(
         number: String? = nil,
         memo: String? = nil,
         footer: String? = nil,
-        customData: [String: String]? = nil
+        customData: CustomData? = nil
     ) {
         self.number = number
         self.memo = memo
@@ -5899,14 +5899,14 @@ public struct MessageTemplateEmailContent: Codable, Sendable, Equatable {
     public var html: String
     public var from: MessageTemplateMailbox?
     public var replyTo: MessageTemplateMailbox?
-    public var headers: [String: String]?
+    public var headers: MessageHeaders?
 
     public init(
         subject: String,
         html: String,
         from: MessageTemplateMailbox? = nil,
         replyTo: MessageTemplateMailbox? = nil,
-        headers: [String: String]? = nil
+        headers: MessageHeaders? = nil
     ) {
         self.subject = subject
         self.html = html
@@ -5928,14 +5928,14 @@ public struct MessageTemplateEmailContent: Codable, Sendable, Equatable {
 public struct MessageTemplateEmailContentInput: Codable, Sendable, Equatable {
     public var from: MessageTemplateMailboxInput?
     public var replyTo: MessageTemplateMailboxInput?
-    public var headers: [String: String]?
+    public var headers: MessageHeaders?
     public var subject: String
     public var html: String
 
     public init(
         from: MessageTemplateMailboxInput? = nil,
         replyTo: MessageTemplateMailboxInput? = nil,
-        headers: [String: String]? = nil,
+        headers: MessageHeaders? = nil,
         subject: String,
         html: String
     ) {
@@ -6015,11 +6015,11 @@ public struct MessageTemplatePreview: Codable, Sendable, Equatable {
 
 /// Typed Inttegro request parameters.
 public struct MessageTemplateReferenceInput: Codable, Sendable, Equatable {
-    public var variables: [String: JSONValue]?
+    public var variables: JSONData?
     public var templateId: String
 
     public init(
-        variables: [String: JSONValue]? = nil,
+        variables: JSONData? = nil,
         templateId: String
     ) {
         self.variables = variables
@@ -6393,7 +6393,7 @@ public struct Order: Codable, Sendable, Equatable {
     public var checkoutSettings: OrderCheckoutSettings?
     public var completedAt: String?
     public var createdFrom: OrderCreatedFrom?
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var customer: OrderCustomer
     public var expiresAt: String?
     public var id: String
@@ -6409,16 +6409,16 @@ public struct Order: Codable, Sendable, Equatable {
     public var payment: Payment?
     public var paidAt: String?
     public var paymentDueAt: String?
-    public var payoutSettings: [String: JSONValue]?
+    public var payoutSettings: OrderPayoutSettings?
     public var reference: String?
-    public var shipping: [String: JSONValue]?
+    public var shipping: Shipping?
 
     public init(
         canceledAt: String? = nil,
         checkoutSettings: OrderCheckoutSettings? = nil,
         completedAt: String? = nil,
         createdFrom: OrderCreatedFrom? = nil,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         customer: OrderCustomer,
         expiresAt: String? = nil,
         id: String,
@@ -6434,9 +6434,9 @@ public struct Order: Codable, Sendable, Equatable {
         payment: Payment? = nil,
         paidAt: String? = nil,
         paymentDueAt: String? = nil,
-        payoutSettings: [String: JSONValue]? = nil,
+        payoutSettings: OrderPayoutSettings? = nil,
         reference: String? = nil,
-        shipping: [String: JSONValue]? = nil
+        shipping: Shipping? = nil
     ) {
         self.canceledAt = canceledAt
         self.checkoutSettings = checkoutSettings
@@ -6892,7 +6892,7 @@ public struct OrderProductLineItemProduct: Codable, Sendable, Equatable {
     public var priceId: String?
     public var reference: String?
     public var about: String?
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var taxCode: String?
     public var name: String
     public var category: String?
@@ -6906,7 +6906,7 @@ public struct OrderProductLineItemProduct: Codable, Sendable, Equatable {
         priceId: String? = nil,
         reference: String? = nil,
         about: String? = nil,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         taxCode: String? = nil,
         name: String,
         category: String? = nil,
@@ -7438,7 +7438,7 @@ public struct PaymentMethod: Codable, Sendable, Equatable {
     public var archivedAt: String?
     public var bankAccount: PaymentMethodBankAccount?
     public var createdAt: String
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var customerId: String
     public var ephemeral: Bool?
     public var expiresOn: String?
@@ -7458,7 +7458,7 @@ public struct PaymentMethod: Codable, Sendable, Equatable {
         archivedAt: String? = nil,
         bankAccount: PaymentMethodBankAccount? = nil,
         createdAt: String,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         customerId: String,
         ephemeral: Bool? = nil,
         expiresOn: String? = nil,
@@ -7834,7 +7834,7 @@ public struct PaymentMethodSettings: Codable, Sendable, Equatable {
 public struct PaymentMethodSnapshot: Codable, Sendable, Equatable {
     public var id: String
     public var bankAccount: PaymentMethodSnapshotBankAccount?
-    public var card: [String: JSONValue]?
+    public var card: JSONData?
     public var createdAt: String
     public var customerId: String
     public var mobileMoney: PaymentMethodSnapshotMobileMoney?
@@ -7846,7 +7846,7 @@ public struct PaymentMethodSnapshot: Codable, Sendable, Equatable {
     public init(
         id: String,
         bankAccount: PaymentMethodSnapshotBankAccount? = nil,
-        card: [String: JSONValue]? = nil,
+        card: JSONData? = nil,
         createdAt: String,
         customerId: String,
         mobileMoney: PaymentMethodSnapshotMobileMoney? = nil,
@@ -8071,14 +8071,14 @@ public struct PaymentMethodVerificationSession: Codable, Sendable, Equatable {
     public var status: String
     public var tokenSentAt: String?
     public var expiresAt: String?
-    public var delivery: [String: JSONValue]?
+    public var delivery: JSONData?
 
     public init(
         paymentMethodId: String,
         status: String,
         tokenSentAt: String? = nil,
         expiresAt: String? = nil,
-        delivery: [String: JSONValue]? = nil
+        delivery: JSONData? = nil
     ) {
         self.paymentMethodId = paymentMethodId
         self.status = status
@@ -8100,14 +8100,14 @@ public struct PaymentMethodVerificationSession: Codable, Sendable, Equatable {
 public struct PaymentNextAction: Codable, Sendable, Equatable {
     public var type: PaymentNextActionType
     public var confirmPayment: PaymentNextActionConfirmPayment?
-    public var execute: [String: JSONValue]?
+    public var execute: JSONData?
     public var redirect: PaymentNextActionRedirect?
     public var authorize: PaymentNextActionAuthorize?
 
     public init(
         type: PaymentNextActionType,
         confirmPayment: PaymentNextActionConfirmPayment? = nil,
-        execute: [String: JSONValue]? = nil,
+        execute: JSONData? = nil,
         redirect: PaymentNextActionRedirect? = nil,
         authorize: PaymentNextActionAuthorize? = nil
     ) {
@@ -8336,7 +8336,7 @@ public struct Payout: Codable, Sendable, Equatable {
     public var amount: Amount?
     public var balanceTransactions: [String]?
     public var canceledAt: String?
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var destinationId: String
     public var error: PayoutError?
     public var executeAfter: String
@@ -8360,7 +8360,7 @@ public struct Payout: Codable, Sendable, Equatable {
         amount: Amount? = nil,
         balanceTransactions: [String]? = nil,
         canceledAt: String? = nil,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         destinationId: String,
         error: PayoutError? = nil,
         executeAfter: String,
@@ -8476,12 +8476,12 @@ public struct PayoutPage: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct PayoutSettingsLookup: Codable, Sendable, Equatable {
-    public var destinations: [String: String]
+    public var destinations: PayoutDestinations
     public var fxEnabled: Bool?
     public var schedule: PayoutSettingsLookupSchedule?
 
     public init(
-        destinations: [String: String],
+        destinations: PayoutDestinations,
         fxEnabled: Bool? = nil,
         schedule: PayoutSettingsLookupSchedule? = nil
     ) {
@@ -8557,12 +8557,12 @@ public struct PayoutSettingsLookupScheduleAgingSpec: Codable, Sendable, Equatabl
 
 /// Typed Inttegro domain value.
 public struct PayoutSettingsMutation: Codable, Sendable, Equatable {
-    public var destinations: [String: String]?
+    public var destinations: PayoutDestinations?
     public var id: String?
     public var schedule: PayoutSettingsMutationSchedule?
 
     public init(
-        destinations: [String: String]? = nil,
+        destinations: PayoutDestinations? = nil,
         id: String? = nil,
         schedule: PayoutSettingsMutationSchedule? = nil
     ) {
@@ -8676,14 +8676,14 @@ public struct PriceEmbeddedProduct: Codable, Sendable, Equatable {
     public var attributes: [PriceEmbeddedProductAttributesItem]?
     public var category: String?
     public var createdAt: String
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var description: String?
-    public var dimensions: [String: JSONValue]?
-    public var media: [String: JSONValue]?
+    public var dimensions: ProductDimensions?
+    public var media: ProductMedia?
     public var name: String
     public var publishedAt: String?
     public var reference: String?
-    public var shipment: [String: JSONValue]?
+    public var shipment: ProductShipment?
     public var taxCode: String?
     public var type: ProductType
     public var unitDim: String?
@@ -8697,14 +8697,14 @@ public struct PriceEmbeddedProduct: Codable, Sendable, Equatable {
         attributes: [PriceEmbeddedProductAttributesItem]? = nil,
         category: String? = nil,
         createdAt: String,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         description: String? = nil,
-        dimensions: [String: JSONValue]? = nil,
-        media: [String: JSONValue]? = nil,
+        dimensions: ProductDimensions? = nil,
+        media: ProductMedia? = nil,
         name: String,
         publishedAt: String? = nil,
         reference: String? = nil,
-        shipment: [String: JSONValue]? = nil,
+        shipment: ProductShipment? = nil,
         taxCode: String? = nil,
         type: ProductType,
         unitDim: String? = nil,
@@ -8888,7 +8888,7 @@ public struct Product: Codable, Sendable, Equatable {
     public var media: ProductMedia?
     public var attributes: [ProductAttribute]?
     public var dimensions: ProductDimensions?
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var active: Bool
     public var createdAt: String
     public var updatedAt: String?
@@ -8910,7 +8910,7 @@ public struct Product: Codable, Sendable, Equatable {
         media: ProductMedia? = nil,
         attributes: [ProductAttribute]? = nil,
         dimensions: ProductDimensions? = nil,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         active: Bool,
         createdAt: String,
         updatedAt: String? = nil,
@@ -9028,12 +9028,12 @@ public struct ProductDimensions: Codable, Sendable, Equatable {
 public struct ProductDimensionsCustom: Codable, Sendable, Equatable {
     public var sizeUnit: String?
     public var size: Double?
-    public var details: [String: String]?
+    public var details: ProductDimensionDetails?
 
     public init(
         sizeUnit: String? = nil,
         size: Double? = nil,
-        details: [String: String]? = nil
+        details: ProductDimensionDetails? = nil
     ) {
         self.sizeUnit = sizeUnit
         self.size = size
@@ -9091,12 +9091,12 @@ public struct ProductDimensionsInput: Codable, Sendable, Equatable {
 public struct ProductDimensionsInputCustom: Codable, Sendable, Equatable {
     public var sizeUnit: String?
     public var size: Double?
-    public var details: [String: String]?
+    public var details: ProductDimensionDetails?
 
     public init(
         sizeUnit: String? = nil,
         size: Double? = nil,
-        details: [String: String]? = nil
+        details: ProductDimensionDetails? = nil
     ) {
         self.sizeUnit = sizeUnit
         self.size = size
@@ -9367,19 +9367,19 @@ public struct ProductPriceSummary: Codable, Sendable, Equatable {
 /// Typed Inttegro domain value.
 public struct ProductShipment: Codable, Sendable, Equatable {
     public var type: ProductShipmentType
-    public var delivery: [String: JSONValue]?
-    public var download: [String: JSONValue]?
-    public var render: [String: JSONValue]?
-    public var service: [String: JSONValue]?
-    public var stream: [String: JSONValue]?
+    public var delivery: JSONData?
+    public var download: JSONData?
+    public var render: JSONData?
+    public var service: JSONData?
+    public var stream: JSONData?
 
     public init(
         type: ProductShipmentType,
-        delivery: [String: JSONValue]? = nil,
-        download: [String: JSONValue]? = nil,
-        render: [String: JSONValue]? = nil,
-        service: [String: JSONValue]? = nil,
-        stream: [String: JSONValue]? = nil
+        delivery: JSONData? = nil,
+        download: JSONData? = nil,
+        render: JSONData? = nil,
+        service: JSONData? = nil,
+        stream: JSONData? = nil
     ) {
         self.type = type
         self.delivery = delivery
@@ -9600,14 +9600,14 @@ public struct PurchaseIntentProduct: Codable, Sendable, Equatable {
     public var attributes: [PurchaseIntentProductAttributesItem]?
     public var category: String?
     public var createdAt: String
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var description: String?
-    public var dimensions: [String: JSONValue]?
-    public var media: [String: JSONValue]?
+    public var dimensions: ProductDimensions?
+    public var media: ProductMedia?
     public var name: String
     public var publishedAt: String?
     public var reference: String?
-    public var shipment: [String: JSONValue]?
+    public var shipment: ProductShipment?
     public var taxCode: String?
     public var type: ProductType
     public var unitDim: String?
@@ -9623,14 +9623,14 @@ public struct PurchaseIntentProduct: Codable, Sendable, Equatable {
         attributes: [PurchaseIntentProductAttributesItem]? = nil,
         category: String? = nil,
         createdAt: String,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         description: String? = nil,
-        dimensions: [String: JSONValue]? = nil,
-        media: [String: JSONValue]? = nil,
+        dimensions: ProductDimensions? = nil,
+        media: ProductMedia? = nil,
         name: String,
         publishedAt: String? = nil,
         reference: String? = nil,
-        shipment: [String: JSONValue]? = nil,
+        shipment: ProductShipment? = nil,
         taxCode: String? = nil,
         type: ProductType,
         unitDim: String? = nil,
@@ -9763,7 +9763,7 @@ public struct PurchaseIntentVariant: Codable, Sendable, Equatable {
     public var price: PurchaseIntentPrice?
     public var product: PurchaseIntentProduct?
     public var productId: String
-    public var variantValues: [String: String]
+    public var variantValues: VariantValues
 
     public init(
         active: Bool,
@@ -9771,7 +9771,7 @@ public struct PurchaseIntentVariant: Codable, Sendable, Equatable {
         price: PurchaseIntentPrice? = nil,
         product: PurchaseIntentProduct? = nil,
         productId: String,
-        variantValues: [String: String]
+        variantValues: VariantValues
     ) {
         self.active = active
         self.position = position
@@ -9855,7 +9855,7 @@ public struct PurchaseIntentVariantSet: Codable, Sendable, Equatable {
 public struct Refund: Codable, Sendable, Equatable {
     public var canceledAt: String?
     public var createdAt: String
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var failedAt: String?
     public var id: String
     public var lineItems: [RefundLineItem]
@@ -9871,7 +9871,7 @@ public struct Refund: Codable, Sendable, Equatable {
     public init(
         canceledAt: String? = nil,
         createdAt: String,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         failedAt: String? = nil,
         id: String,
         lineItems: [RefundLineItem],
@@ -10007,7 +10007,7 @@ public struct RenderedEmailMessageTemplate: Codable, Sendable, Equatable {
     public var html: String?
     public var from: MessageTemplateMailbox?
     public var replyTo: MessageTemplateMailbox?
-    public var headers: [String: String]?
+    public var headers: MessageHeaders?
     public var safety: MessageTemplateSafetyResult?
 
     public init(
@@ -10016,7 +10016,7 @@ public struct RenderedEmailMessageTemplate: Codable, Sendable, Equatable {
         html: String? = nil,
         from: MessageTemplateMailbox? = nil,
         replyTo: MessageTemplateMailbox? = nil,
-        headers: [String: String]? = nil,
+        headers: MessageHeaders? = nil,
         safety: MessageTemplateSafetyResult? = nil
     ) {
         self.subject = subject
@@ -10694,7 +10694,7 @@ public struct SendChimeRequest: Codable, Sendable, Equatable {
     public var messageTemplate: MessageTemplateReferenceInput?
     public var senderId: String?
     public var purpose: String?
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var requestMeta: SendChimeRequestRequestMeta?
     public var recipient: SendChimeRequestRecipient
 
@@ -10704,7 +10704,7 @@ public struct SendChimeRequest: Codable, Sendable, Equatable {
         messageTemplate: MessageTemplateReferenceInput? = nil,
         senderId: String? = nil,
         purpose: String? = nil,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         requestMeta: SendChimeRequestRequestMeta? = nil,
         recipient: SendChimeRequestRecipient
     ) {
@@ -10747,10 +10747,10 @@ public struct SendChimeRequestRequestMeta: Codable, Sendable, Equatable {
 
 /// Typed Inttegro request parameters.
 public struct SetPayoutDestinationsRequest: Codable, Sendable, Equatable {
-    public var destinations: [String: String]
+    public var destinations: PayoutDestinations
 
     public init(
-        destinations: [String: String]
+        destinations: PayoutDestinations
     ) {
         self.destinations = destinations
     }
@@ -10760,13 +10760,13 @@ public struct SetPayoutDestinationsRequest: Codable, Sendable, Equatable {
 public struct ShippingDetailsInput: Codable, Sendable, Equatable {
     public var id: String?
     public var taxCode: String?
-    public var customData: [String: JSONValue]?
+    public var customData: CustomDataInput?
     public var fee: AmountParams
 
     public init(
         id: String? = nil,
         taxCode: String? = nil,
-        customData: [String: JSONValue]? = nil,
+        customData: CustomDataInput? = nil,
         fee: AmountParams
     ) {
         self.id = id
@@ -10810,14 +10810,14 @@ public struct ShippingLineItemInput: Codable, Sendable, Equatable {
 
 /// Typed Inttegro request parameters.
 public struct TokenizeMobileMoneyPaymentMethodRequest: Codable, Sendable, Equatable {
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var customerId: String
     public var type: PaymentMethodType
     public var mobileMoney: TokenizeMobileMoneyPaymentMethodRequestMobileMoney
     public var owner: PaymentMethodOwnerInput
 
     public init(
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         customerId: String,
         type: PaymentMethodType,
         mobileMoney: TokenizeMobileMoneyPaymentMethodRequestMobileMoney,
@@ -10903,7 +10903,7 @@ public struct UpdateApplicationRequest: Codable, Sendable, Equatable {
 /// Typed Inttegro request parameters.
 public struct UpdateCustomerRequest: Codable, Sendable, Equatable {
     public var billingAddress: CustomerAddressInput?
-    public var customData: [String: JSONValue]?
+    public var customData: CustomDataInput?
     public var emailAddress: String?
     public var name: String?
     public var phoneNumber: String?
@@ -10915,7 +10915,7 @@ public struct UpdateCustomerRequest: Codable, Sendable, Equatable {
 
     public init(
         billingAddress: CustomerAddressInput? = nil,
-        customData: [String: JSONValue]? = nil,
+        customData: CustomDataInput? = nil,
         emailAddress: String? = nil,
         name: String? = nil,
         phoneNumber: String? = nil,
@@ -10992,7 +10992,7 @@ public struct UpdateMessageTemplateRequest: Codable, Sendable, Equatable {
 /// Typed Inttegro request parameters.
 public struct UpdateOrderRequest: Codable, Sendable, Equatable {
     public var clearPaymentMethod: Bool?
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var invoiceSettings: InvoiceSettingsInput?
     public var finalize: Bool?
     public var lineItems: [JSONValue]?
@@ -11006,7 +11006,7 @@ public struct UpdateOrderRequest: Codable, Sendable, Equatable {
 
     public init(
         clearPaymentMethod: Bool? = nil,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         invoiceSettings: InvoiceSettingsInput? = nil,
         finalize: Bool? = nil,
         lineItems: [JSONValue]? = nil,
@@ -11088,14 +11088,14 @@ public struct UpdateOrderRequestPaymentMethodDataMobileMoney: Codable, Sendable,
 
 /// Typed Inttegro request parameters.
 public struct UpdatePaymentMethodRequest: Codable, Sendable, Equatable {
-    public var customData: [String: String?]?
+    public var customData: CustomDataPatch?
     public var active: Bool?
     public var archived: Bool?
     public var owner: UpdatePaymentMethodRequestOwner?
     public var paymentMethodId: String
 
     public init(
-        customData: [String: String?]? = nil,
+        customData: CustomDataPatch? = nil,
         active: Bool? = nil,
         archived: Bool? = nil,
         owner: UpdatePaymentMethodRequestOwner? = nil,
@@ -11211,7 +11211,7 @@ public struct UpdateProductRequest: Codable, Sendable, Equatable {
     public var media: ProductMediaInput?
     public var images: [String]?
     public var attributes: [ProductAttributeInput]?
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var productId: String
 
     public init(
@@ -11227,7 +11227,7 @@ public struct UpdateProductRequest: Codable, Sendable, Equatable {
         media: ProductMediaInput? = nil,
         images: [String]? = nil,
         attributes: [ProductAttributeInput]? = nil,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         productId: String
     ) {
         self.type = type
@@ -11338,7 +11338,7 @@ public struct UpdatedProduct: Codable, Sendable, Equatable {
     public var reference: String?
     public var taxCode: String?
     public var category: String?
-    public var customData: [String: String]?
+    public var customData: CustomData?
     public var dimensions: ProductDimensions?
     public var prices: [ProductPriceSummary]?
     public var unitDim: String?
@@ -11354,7 +11354,7 @@ public struct UpdatedProduct: Codable, Sendable, Equatable {
         reference: String? = nil,
         taxCode: String? = nil,
         category: String? = nil,
-        customData: [String: String]? = nil,
+        customData: CustomData? = nil,
         dimensions: ProductDimensions? = nil,
         prices: [ProductPriceSummary]? = nil,
         unitDim: String? = nil,
@@ -11431,8 +11431,8 @@ public struct UploadRequest: Codable, Sendable, Equatable {
     public var attempts: UploadRequestAttempts
     public var latestError: UploadRequestLatestError?
     public var canceledBy: UploadRequestActor?
-    public var customData: [String: String]?
-    public var metadata: [String: String]?
+    public var customData: CustomData?
+    public var metadata: FileMetadata?
     public var createdAt: String
     public var updatedAt: String
     public var expiresAt: String
@@ -11458,8 +11458,8 @@ public struct UploadRequest: Codable, Sendable, Equatable {
         attempts: UploadRequestAttempts,
         latestError: UploadRequestLatestError? = nil,
         canceledBy: UploadRequestActor? = nil,
-        customData: [String: String]? = nil,
-        metadata: [String: String]? = nil,
+        customData: CustomData? = nil,
+        metadata: FileMetadata? = nil,
         createdAt: String,
         updatedAt: String,
         expiresAt: String,

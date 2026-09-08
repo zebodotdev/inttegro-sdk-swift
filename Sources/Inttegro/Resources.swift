@@ -46,7 +46,7 @@ public struct Balances: Sendable {
     init(client: Client) { self.client = client }
 
     /// Retrieve your balance
-    public func get(options: RequestOptions = .init()) async throws -> [String: CurrencyBalanceSnapshot] {
+    public func get(options: RequestOptions = .init()) async throws -> BalanceSnapshot {
         try await client.request(method: "POST", path: "/balances", body: EmptyBody(), options: options, operation: "balances.get", field: "balances", authenticated: true)
     }
 
@@ -709,7 +709,7 @@ public struct Specifications: Sendable {
     init(client: Client) { self.client = client }
 
     /// Get country specifications
-    public func countries(options: RequestOptions = .init()) async throws -> [String: CountrySpecification] {
+    public func countries(options: RequestOptions = .init()) async throws -> CountrySpecifications {
         try await client.request(method: "POST", path: "/spec/countries", body: EmptyBody(), options: options, operation: "specifications.countries", field: "countries", authenticated: false)
     }
 

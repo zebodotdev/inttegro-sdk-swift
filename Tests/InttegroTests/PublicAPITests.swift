@@ -6,6 +6,17 @@ import XCTest
 @testable import Inttegro
 
 final class PublicAPITests: XCTestCase {
+    func testCustomDataControlsMutationAndPatchRemoval() throws {
+        var data = try CustomData(["campaign": "launch"])
+        try data.set("vip", for: "segment")
+        var patch = CustomDataPatch()
+        try patch.unset("legacy")
+
+        XCTAssertEqual(data["segment"], "vip")
+        XCTAssertEqual(patch["legacy"], .null)
+        XCTAssertThrowsError(try data.set("value", for: String(repeating: "x", count: 257)))
+    }
+
     func testClientExposesTypedResources() throws {
         let client = try Client(apiKey: "sk_test_example")
         _ = client.orders
