@@ -348,10 +348,47 @@ public final class Client: @unchecked Sendable {
     }
 }
 
-private extension JSONEncoder {
-    static let inttegro = JSONEncoder()
+extension JSONEncoder {
+    static var inttegro: JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .custom { date, encoder in
+            var value = encoder.singleValueContainer()
+            try value.encode(InttegroDateTime.string(from: date))
+        }
+        return encoder
+    }
 }
 
-private extension JSONDecoder {
-    static let inttegro = JSONDecoder()
+extension JSONDecoder {
+    static var inttegro: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let value = try decoder.singleValueContainer().decode(String.self)
+            guard let date = InttegroDateTime.date(from: value) else {
+                throw DecodingError.dataCorrupted(
+                    .init(codingPath: decoder.codingPath, debugDescription: "Invalid ISO-8601 timestamp: \(value)")
+                )
+            }
+            return date
+        }
+        return decoder
+    }
+}
+
+private enum InttegroDateTime {
+    static func date(from value: String) -> Date? {
+        let fractional = ISO8601DateFormatter()
+        fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = fractional.date(from: value) { return date }
+
+        let standard = ISO8601DateFormatter()
+        standard.formatOptions = [.withInternetDateTime]
+        return standard.date(from: value)
+    }
+
+    static func string(from date: Date) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter.string(from: date)
+    }
 }
