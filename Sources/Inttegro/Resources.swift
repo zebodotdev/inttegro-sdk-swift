@@ -410,11 +410,6 @@ public struct Orders: Sendable {
         try await client.request(method: "POST", path: "/orders/page", body: request, options: options, operation: "orders.page", field: "page", authenticated: true)
     }
 
-    /// Create a refund using the compatibility URL
-    public func refund(_ request: CreateRefundRequest, options: RequestOptions = .init()) async throws -> Refund {
-        try await client.request(method: "POST", path: "/orders/refund", body: request, options: options, operation: "orders.refund", field: "refund", authenticated: true)
-    }
-
 }
 
 /// Operations for Inttegro otp.

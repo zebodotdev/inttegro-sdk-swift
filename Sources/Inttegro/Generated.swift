@@ -417,8 +417,8 @@ public struct PaymentNextActionType: RawRepresentable, Codable, Hashable, Sendab
     public static let confirmPayment = Self(rawValue: "confirm_payment")
     public static let execute = Self(rawValue: "execute")
     public static let redirect = Self(rawValue: "redirect")
-    public static let authorize = Self(rawValue: "authorize")
-    public static let none = Self(rawValue: "none")
+    public static let authorizePayment = Self(rawValue: "authorize_payment")
+    public static let requestConfirmation = Self(rawValue: "request_confirmation")
 }
 
 /// A typed `PaymentResultStatus` value used by the Inttegro API.
@@ -741,12 +741,14 @@ public enum OrderLineItem: Codable, Sendable, Equatable {
     case orderProductLineItem(OrderProductLineItem)
     case orderFeeLineItem(OrderFeeLineItem)
     case orderShippingLineItem(OrderShippingLineItem)
+    case orderDiscountLineItem(OrderDiscountLineItem)
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         if let value = try? container.decode(OrderProductLineItem.self) { self = .orderProductLineItem(value); return }
         if let value = try? container.decode(OrderFeeLineItem.self) { self = .orderFeeLineItem(value); return }
         if let value = try? container.decode(OrderShippingLineItem.self) { self = .orderShippingLineItem(value); return }
+        if let value = try? container.decode(OrderDiscountLineItem.self) { self = .orderDiscountLineItem(value); return }
         throw DecodingError.typeMismatch(Self.self, .init(codingPath: decoder.codingPath, debugDescription: "Unsupported value"))
     }
 
@@ -756,6 +758,7 @@ public enum OrderLineItem: Codable, Sendable, Equatable {
         case .orderProductLineItem(let value): try container.encode(value)
         case .orderFeeLineItem(let value): try container.encode(value)
         case .orderShippingLineItem(let value): try container.encode(value)
+        case .orderDiscountLineItem(let value): try container.encode(value)
         }
     }
 }
@@ -998,9 +1001,9 @@ public struct Application: Codable, Sendable, Equatable {
     public var name: String
     public var alias: String?
     public var description: String?
-    public var createdAt: String
-    public var updatedAt: String?
-    public var archivedAt: String?
+    public var createdAt: Date
+    public var updatedAt: Date?
+    public var archivedAt: Date?
     public var secretKey: ApplicationSecretKey?
     public var relationship: ApplicationRelationship?
 
@@ -1009,9 +1012,9 @@ public struct Application: Codable, Sendable, Equatable {
         name: String,
         alias: String? = nil,
         description: String? = nil,
-        createdAt: String,
-        updatedAt: String? = nil,
-        archivedAt: String? = nil,
+        createdAt: Date,
+        updatedAt: Date? = nil,
+        archivedAt: Date? = nil,
         secretKey: ApplicationSecretKey? = nil,
         relationship: ApplicationRelationship? = nil
     ) {
@@ -1053,7 +1056,7 @@ public struct ApplicationRelationship: Codable, Sendable, Equatable {
     public var childStanding: String
     public var relationshipPolicy: ApplicationRelationshipPolicy
     public var retainedCreatorAuthorityExists: Bool
-    public var createdAt: String
+    public var createdAt: Date
 
     public init(
         id: String,
@@ -1068,7 +1071,7 @@ public struct ApplicationRelationship: Codable, Sendable, Equatable {
         childStanding: String,
         relationshipPolicy: ApplicationRelationshipPolicy,
         retainedCreatorAuthorityExists: Bool,
-        createdAt: String
+        createdAt: Date
     ) {
         self.id = id
         self.kind = kind
@@ -1129,13 +1132,13 @@ public struct ApplicationRelationshipPolicy: Codable, Sendable, Equatable {
 public struct ApplicationSecretKey: Codable, Sendable, Equatable {
     public var id: String?
     public var tokenType: String?
-    public var issuedAt: String?
+    public var issuedAt: Date?
     public var token: String?
 
     public init(
         id: String? = nil,
         tokenType: String? = nil,
-        issuedAt: String? = nil,
+        issuedAt: Date? = nil,
         token: String? = nil
     ) {
         self.id = id
@@ -1170,27 +1173,29 @@ public struct ArchivePaymentMethodRequest: Codable, Sendable, Equatable {
 /// Typed Inttegro domain value.
 public struct BalanceTransaction: Codable, Sendable, Equatable {
     public var amount: BalanceTransactionAmount
-    public var availableAt: String?
-    public var claimedAt: String?
-    public var createdAt: String
+    public var availableAt: Date?
+    public var claimedAt: Date?
+    public var createdAt: Date
     public var id: String
     public var orderId: String
-    public var paidAt: String?
+    public var paidAt: Date?
     public var paymentId: String?
     public var payoutId: String?
+    public var payoutConfiguration: PaymentPayoutConfiguration?
     public var refundId: String?
     public var type: BalanceTransactionType
 
     public init(
         amount: BalanceTransactionAmount,
-        availableAt: String? = nil,
-        claimedAt: String? = nil,
-        createdAt: String,
+        availableAt: Date? = nil,
+        claimedAt: Date? = nil,
+        createdAt: Date,
         id: String,
         orderId: String,
-        paidAt: String? = nil,
+        paidAt: Date? = nil,
         paymentId: String? = nil,
         payoutId: String? = nil,
+        payoutConfiguration: PaymentPayoutConfiguration? = nil,
         refundId: String? = nil,
         type: BalanceTransactionType
     ) {
@@ -1203,6 +1208,7 @@ public struct BalanceTransaction: Codable, Sendable, Equatable {
         self.paidAt = paidAt
         self.paymentId = paymentId
         self.payoutId = payoutId
+        self.payoutConfiguration = payoutConfiguration
         self.refundId = refundId
         self.type = type
     }
@@ -1217,6 +1223,7 @@ public struct BalanceTransaction: Codable, Sendable, Equatable {
         case paidAt = "paid_at"
         case paymentId = "payment_id"
         case payoutId = "payout_id"
+        case payoutConfiguration = "payout_configuration"
         case refundId = "refund_id"
         case type
     }
@@ -1295,34 +1302,34 @@ public struct BillingDetailsInput: Codable, Sendable, Equatable {
 public struct BroadcastCancelDetail: Codable, Sendable, Equatable {
     public var chimeIds: [String]?
     public var content: String
-    public var createdAt: String
+    public var createdAt: Date
     public var customerIds: [String]?
     public var email: ChimeEmailMessage?
     public var errors: [BroadcastError]?
-    public var executedAt: String?
+    public var executedAt: Date?
     public var id: String
     public var idempotencyKey: String?
     public var purpose: String?
     public var recipients: [String]
-    public var sendAfter: String
+    public var sendAfter: Date
     public var senderId: String
-    public var canceledAt: String?
+    public var canceledAt: Date?
 
     public init(
         chimeIds: [String]? = nil,
         content: String,
-        createdAt: String,
+        createdAt: Date,
         customerIds: [String]? = nil,
         email: ChimeEmailMessage? = nil,
         errors: [BroadcastError]? = nil,
-        executedAt: String? = nil,
+        executedAt: Date? = nil,
         id: String,
         idempotencyKey: String? = nil,
         purpose: String? = nil,
         recipients: [String],
-        sendAfter: String,
+        sendAfter: Date,
         senderId: String,
-        canceledAt: String? = nil
+        canceledAt: Date? = nil
     ) {
         self.chimeIds = chimeIds
         self.content = content
@@ -1361,26 +1368,26 @@ public struct BroadcastCancelDetail: Codable, Sendable, Equatable {
 /// Typed Inttegro domain value.
 public struct BroadcastCreationDetail: Codable, Sendable, Equatable {
     public var content: String
-    public var createdAt: String
+    public var createdAt: Date
     public var customerIds: [String]?
     public var email: ChimeEmailMessage?
     public var id: String
     public var idempotencyKey: String?
     public var purpose: String?
     public var recipients: [String]
-    public var sendAfter: String
+    public var sendAfter: Date
     public var senderId: String
 
     public init(
         content: String,
-        createdAt: String,
+        createdAt: Date,
         customerIds: [String]? = nil,
         email: ChimeEmailMessage? = nil,
         id: String,
         idempotencyKey: String? = nil,
         purpose: String? = nil,
         recipients: [String],
-        sendAfter: String,
+        sendAfter: Date,
         senderId: String
     ) {
         self.content = content
@@ -1413,31 +1420,31 @@ public struct BroadcastCreationDetail: Codable, Sendable, Equatable {
 public struct BroadcastDetail: Codable, Sendable, Equatable {
     public var chimeIds: [String]?
     public var content: String
-    public var createdAt: String
+    public var createdAt: Date
     public var customerIds: [String]?
     public var email: ChimeEmailMessage?
     public var errors: [BroadcastError]?
-    public var executedAt: String?
+    public var executedAt: Date?
     public var id: String
     public var idempotencyKey: String?
     public var purpose: String?
     public var recipients: [String]
-    public var sendAfter: String
+    public var sendAfter: Date
     public var senderId: String
 
     public init(
         chimeIds: [String]? = nil,
         content: String,
-        createdAt: String,
+        createdAt: Date,
         customerIds: [String]? = nil,
         email: ChimeEmailMessage? = nil,
         errors: [BroadcastError]? = nil,
-        executedAt: String? = nil,
+        executedAt: Date? = nil,
         id: String,
         idempotencyKey: String? = nil,
         purpose: String? = nil,
         recipients: [String],
-        sendAfter: String,
+        sendAfter: Date,
         senderId: String
     ) {
         self.chimeIds = chimeIds
@@ -1679,9 +1686,9 @@ public struct CatalogPrice: Codable, Sendable, Equatable {
     public var nominal: Amount
     public var productId: String?
     public var product: PriceEmbeddedProduct?
-    public var createdAt: String
-    public var updatedAt: String?
-    public var archivedAt: String?
+    public var createdAt: Date
+    public var updatedAt: Date?
+    public var archivedAt: Date?
 
     public init(
         id: String,
@@ -1691,9 +1698,9 @@ public struct CatalogPrice: Codable, Sendable, Equatable {
         nominal: Amount,
         productId: String? = nil,
         product: PriceEmbeddedProduct? = nil,
-        createdAt: String,
-        updatedAt: String? = nil,
-        archivedAt: String? = nil
+        createdAt: Date,
+        updatedAt: Date? = nil,
+        archivedAt: Date? = nil
     ) {
         self.id = id
         self.label = label
@@ -1796,7 +1803,7 @@ public struct CatalogProductWithPriceReferenceInput: Codable, Sendable, Equatabl
 
 /// Typed Inttegro domain value.
 public struct Chime: Codable, Sendable, Equatable {
-    public var createdAt: String
+    public var createdAt: Date
     public var customData: CustomData?
     public var customerId: String?
     public var email: ChimeEmailMessage?
@@ -1809,7 +1816,7 @@ public struct Chime: Codable, Sendable, Equatable {
     public var transmission: ChimeTransmission?
 
     public init(
-        createdAt: String,
+        createdAt: Date,
         customData: CustomData? = nil,
         customerId: String? = nil,
         email: ChimeEmailMessage? = nil,
@@ -1855,7 +1862,7 @@ public struct ChimeEmailEvent: Codable, Sendable, Equatable {
     public var bounceType: String?
     public var complaintSubType: String?
     public var id: String
-    public var occurredAt: String
+    public var occurredAt: Date
     public var provider: String
     public var providerMessageId: String
     public var reason: String?
@@ -1871,7 +1878,7 @@ public struct ChimeEmailEvent: Codable, Sendable, Equatable {
         bounceType: String? = nil,
         complaintSubType: String? = nil,
         id: String,
-        occurredAt: String,
+        occurredAt: Date,
         provider: String,
         providerMessageId: String,
         reason: String? = nil,
@@ -2244,46 +2251,46 @@ public struct ChimeSavedCustomerRecipientInput: Codable, Sendable, Equatable {
 /// Typed Inttegro domain value.
 public struct ChimeTransmission: Codable, Sendable, Equatable {
     public var address: String
-    public var createdAt: String
-    public var deliveredAt: String?
+    public var createdAt: Date
+    public var deliveredAt: Date?
     public var emailEvents: [ChimeEmailEvent]?
     public var emailFailureCode: String?
     public var emailFailureReason: String?
     public var emailStatus: String?
     public var error: String?
-    public var failedAt: String?
+    public var failedAt: Date?
     public var gateway: String
     public var gatewayMessageId: String?
     public var id: String
-    public var initializedAt: String
-    public var lastEmailEventAt: String?
+    public var initializedAt: Date
+    public var lastEmailEventAt: Date?
     public var mechanism: ChimeTransport
-    public var sentAt: String?
+    public var sentAt: Date?
     public var sentVia: ChimeTransport?
     public var status: String
-    public var suppressedAt: String?
+    public var suppressedAt: Date?
     public var suppressionReason: String?
 
     public init(
         address: String,
-        createdAt: String,
-        deliveredAt: String? = nil,
+        createdAt: Date,
+        deliveredAt: Date? = nil,
         emailEvents: [ChimeEmailEvent]? = nil,
         emailFailureCode: String? = nil,
         emailFailureReason: String? = nil,
         emailStatus: String? = nil,
         error: String? = nil,
-        failedAt: String? = nil,
+        failedAt: Date? = nil,
         gateway: String,
         gatewayMessageId: String? = nil,
         id: String,
-        initializedAt: String,
-        lastEmailEventAt: String? = nil,
+        initializedAt: Date,
+        lastEmailEventAt: Date? = nil,
         mechanism: ChimeTransport,
-        sentAt: String? = nil,
+        sentAt: Date? = nil,
         sentVia: ChimeTransport? = nil,
         status: String,
-        suppressedAt: String? = nil,
+        suppressedAt: Date? = nil,
         suppressionReason: String? = nil
     ) {
         self.address = address
@@ -2645,7 +2652,7 @@ public struct CreateFileLinkRequest: Codable, Sendable, Equatable {
     public var access: FileLinkAccessRequest?
     public var createdBy: FileActorInput?
     public var customData: CustomData?
-    public var expiresAt: String?
+    public var expiresAt: Date?
     public var fileId: String
 
     public init(
@@ -2653,7 +2660,7 @@ public struct CreateFileLinkRequest: Codable, Sendable, Equatable {
         access: FileLinkAccessRequest? = nil,
         createdBy: FileActorInput? = nil,
         customData: CustomData? = nil,
-        expiresAt: String? = nil,
+        expiresAt: Date? = nil,
         fileId: String
     ) {
         self.delivery = delivery
@@ -2691,7 +2698,7 @@ public struct CreateOrderExistingCustomerInput: Codable, Sendable, Equatable {
     public var billingDetails: BillingDetailsInput?
     public var shipping: ShippingInput?
     public var customerId: String
-    public var lineItems: [JSONValue]
+    public var lineItems: [LineItemInput]
 
     public init(
         paymentMethodId: String? = nil,
@@ -2709,7 +2716,7 @@ public struct CreateOrderExistingCustomerInput: Codable, Sendable, Equatable {
         billingDetails: BillingDetailsInput? = nil,
         shipping: ShippingInput? = nil,
         customerId: String,
-        lineItems: [JSONValue]
+        lineItems: [LineItemInput]
     ) {
         self.paymentMethodId = paymentMethodId
         self.paymentMethodData = paymentMethodData
@@ -2800,7 +2807,7 @@ public struct CreateOrderNewCustomerInput: Codable, Sendable, Equatable {
     public var shipping: ShippingInput?
     public var paymentMethodData: PaymentMethodDataInput?
     public var customerData: CustomerDataInput
-    public var lineItems: [JSONValue]
+    public var lineItems: [LineItemInput]
 
     public init(
         number: String? = nil,
@@ -2818,7 +2825,7 @@ public struct CreateOrderNewCustomerInput: Codable, Sendable, Equatable {
         shipping: ShippingInput? = nil,
         paymentMethodData: PaymentMethodDataInput? = nil,
         customerData: CustomerDataInput,
-        lineItems: [JSONValue]
+        lineItems: [LineItemInput]
     ) {
         self.number = number
         self.receiptNumber = receiptNumber
@@ -2966,7 +2973,7 @@ public struct CreatePurchaseIntentRequest: Codable, Sendable, Equatable {
     public var price: CreatePurchaseIntentRequestPrice?
     public var priceId: String?
     public var usage: CreatePurchaseIntentRequestUsage?
-    public var expiresAt: String?
+    public var expiresAt: Date?
     public var quantity: CreatePurchaseIntentRequestQuantity
 
     public init(
@@ -2975,7 +2982,7 @@ public struct CreatePurchaseIntentRequest: Codable, Sendable, Equatable {
         price: CreatePurchaseIntentRequestPrice? = nil,
         priceId: String? = nil,
         usage: CreatePurchaseIntentRequestUsage? = nil,
-        expiresAt: String? = nil,
+        expiresAt: Date? = nil,
         quantity: CreatePurchaseIntentRequestQuantity
     ) {
         self.product = product
@@ -3196,7 +3203,7 @@ public struct CreateUploadRequestRequest: Codable, Sendable, Equatable {
     public var requester: FileActorInput?
     public var attempts: UploadRequestAttemptsRequest?
     public var customData: CustomData?
-    public var expiresAt: String?
+    public var expiresAt: Date?
     public var purpose: String
 
     public init(
@@ -3208,7 +3215,7 @@ public struct CreateUploadRequestRequest: Codable, Sendable, Equatable {
         requester: FileActorInput? = nil,
         attempts: UploadRequestAttemptsRequest? = nil,
         customData: CustomData? = nil,
-        expiresAt: String? = nil,
+        expiresAt: Date? = nil,
         purpose: String
     ) {
         self.constraints = constraints
@@ -3240,14 +3247,14 @@ public struct CreateUploadRequestRequest: Codable, Sendable, Equatable {
 /// Typed Inttegro domain value.
 public struct CurrencyBalanceSnapshot: Codable, Sendable, Equatable {
     public var available: BalanceValue
-    public var includesTransactionsBefore: String
+    public var includesTransactionsBefore: Date
     public var pending: BalanceValue
     public var refund: CurrencyBalanceSnapshotRefund
     public var reserved: CurrencyBalanceSnapshotReserved
 
     public init(
         available: BalanceValue,
-        includesTransactionsBefore: String,
+        includesTransactionsBefore: Date,
         pending: BalanceValue,
         refund: CurrencyBalanceSnapshotRefund,
         reserved: CurrencyBalanceSnapshotReserved
@@ -3294,7 +3301,7 @@ public struct CurrencyBalanceSnapshotReserved: Codable, Sendable, Equatable {
 public struct Customer: Codable, Sendable, Equatable {
     public var balance: CustomerBalance
     public var billingAddress: CustomerAddress?
-    public var createdAt: String
+    public var createdAt: Date
     public var customData: CustomData?
     public var emailAddress: String?
     public var guest: Bool
@@ -3305,12 +3312,12 @@ public struct Customer: Codable, Sendable, Equatable {
     public var shippingAddress: CustomerAddress?
     public var suffix: String?
     public var title: String?
-    public var updatedAt: String?
+    public var updatedAt: Date?
 
     public init(
         balance: CustomerBalance,
         billingAddress: CustomerAddress? = nil,
-        createdAt: String,
+        createdAt: Date,
         customData: CustomData? = nil,
         emailAddress: String? = nil,
         guest: Bool,
@@ -3321,7 +3328,7 @@ public struct Customer: Codable, Sendable, Equatable {
         shippingAddress: CustomerAddress? = nil,
         suffix: String? = nil,
         title: String? = nil,
-        updatedAt: String? = nil
+        updatedAt: Date? = nil
     ) {
         self.balance = balance
         self.billingAddress = billingAddress
@@ -3445,11 +3452,11 @@ public struct CustomerAddressInput: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct CustomerBalanceValue: Codable, Sendable, Equatable {
-    public var asOf: String
+    public var asOf: Date
     public var available: Amount
 
     public init(
-        asOf: String,
+        asOf: Date,
         available: Amount
     ) {
         self.asOf = asOf
@@ -3672,10 +3679,10 @@ public struct File: Codable, Sendable, Equatable {
     public var latestError: FileLatestError?
     public var customData: CustomData?
     public var metadata: FileMetadata?
-    public var createdAt: String
-    public var updatedAt: String
-    public var availableAt: String?
-    public var expiresAt: String?
+    public var createdAt: Date
+    public var updatedAt: Date
+    public var availableAt: Date?
+    public var expiresAt: Date?
 
     public init(
         id: String,
@@ -3695,10 +3702,10 @@ public struct File: Codable, Sendable, Equatable {
         latestError: FileLatestError? = nil,
         customData: CustomData? = nil,
         metadata: FileMetadata? = nil,
-        createdAt: String,
-        updatedAt: String,
-        availableAt: String? = nil,
-        expiresAt: String? = nil
+        createdAt: Date,
+        updatedAt: Date,
+        availableAt: Date? = nil,
+        expiresAt: Date? = nil
     ) {
         self.id = id
         self.purpose = purpose
@@ -3839,13 +3846,13 @@ public struct FileLatestError: Codable, Sendable, Equatable {
     public var code: String?
     public var message: String?
     public var retryable: Bool?
-    public var at: String?
+    public var at: Date?
 
     public init(
         code: String? = nil,
         message: String? = nil,
         retryable: Bool? = nil,
-        at: String? = nil
+        at: Date? = nil
     ) {
         self.code = code
         self.message = message
@@ -3868,10 +3875,10 @@ public struct FileLink: Codable, Sendable, Equatable {
     public var revokedBy: FileLinkActor?
     public var customData: CustomData?
     public var metadata: FileMetadata?
-    public var createdAt: String
-    public var updatedAt: String
-    public var expiresAt: String
-    public var revokedAt: String?
+    public var createdAt: Date
+    public var updatedAt: Date
+    public var expiresAt: Date
+    public var revokedAt: Date?
 
     public init(
         id: String,
@@ -3886,10 +3893,10 @@ public struct FileLink: Codable, Sendable, Equatable {
         revokedBy: FileLinkActor? = nil,
         customData: CustomData? = nil,
         metadata: FileMetadata? = nil,
-        createdAt: String,
-        updatedAt: String,
-        expiresAt: String,
-        revokedAt: String? = nil
+        createdAt: Date,
+        updatedAt: Date,
+        expiresAt: Date,
+        revokedAt: Date? = nil
     ) {
         self.id = id
         self.kind = kind
@@ -3933,14 +3940,14 @@ public struct FileLink: Codable, Sendable, Equatable {
 public struct FileLinkAccess: Codable, Sendable, Equatable {
     public var maxAccesses: Int?
     public var accessCount: Int?
-    public var lastAccessedAt: String?
+    public var lastAccessedAt: Date?
     public var allowDownload: Bool?
     public var allowedOrigins: [String]?
 
     public init(
         maxAccesses: Int? = nil,
         accessCount: Int? = nil,
-        lastAccessedAt: String? = nil,
+        lastAccessedAt: Date? = nil,
         allowDownload: Bool? = nil,
         allowedOrigins: [String]? = nil
     ) {
@@ -4336,7 +4343,7 @@ public struct FileSource: Codable, Sendable, Equatable {
 /// Typed Inttegro domain value.
 public struct FileUploadReceipt: Codable, Sendable, Equatable {
     public var contentType: String
-    public var createdAt: String
+    public var createdAt: Date
     public var filename: String?
     public var id: String
     public var name: String?
@@ -4345,7 +4352,7 @@ public struct FileUploadReceipt: Codable, Sendable, Equatable {
 
     public init(
         contentType: String,
-        createdAt: String,
+        createdAt: Date,
         filename: String? = nil,
         id: String,
         name: String? = nil,
@@ -4389,8 +4396,8 @@ public struct FinalizeOrderRequest: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct FinancialAccount: Codable, Sendable, Equatable {
-    public var archivedAt: String?
-    public var createdAt: String
+    public var archivedAt: Date?
+    public var createdAt: Date
     public var currency: String
     public var customData: CustomData?
     public var description: String?
@@ -4404,14 +4411,14 @@ public struct FinancialAccount: Codable, Sendable, Equatable {
     public var type: FinancialAccountType
     public var verification: FinancialAccountVerification?
     public var bankAccount: FinancialAccountBank?
-    public var disconnectedAt: String?
+    public var disconnectedAt: Date?
     public var doshAccount: DoshAccount?
     public var owner: FinancialAccountOwner?
     public var wallet: FinancialAccountWallet?
 
     public init(
-        archivedAt: String? = nil,
-        createdAt: String,
+        archivedAt: Date? = nil,
+        createdAt: Date,
         currency: String,
         customData: CustomData? = nil,
         description: String? = nil,
@@ -4425,7 +4432,7 @@ public struct FinancialAccount: Codable, Sendable, Equatable {
         type: FinancialAccountType,
         verification: FinancialAccountVerification? = nil,
         bankAccount: FinancialAccountBank? = nil,
-        disconnectedAt: String? = nil,
+        disconnectedAt: Date? = nil,
         doshAccount: DoshAccount? = nil,
         owner: FinancialAccountOwner? = nil,
         wallet: FinancialAccountWallet? = nil
@@ -4959,11 +4966,11 @@ public struct FinancialAccountPageRequest: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct FinancialAccountPullConfiguration: Codable, Sendable, Equatable {
-    public var enabledAt: String
+    public var enabledAt: Date
     public var mandate: FinancialAccountPullConfigurationMandate
 
     public init(
-        enabledAt: String,
+        enabledAt: Date,
         mandate: FinancialAccountPullConfigurationMandate
     ) {
         self.enabledAt = enabledAt
@@ -4978,13 +4985,13 @@ public struct FinancialAccountPullConfiguration: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct FinancialAccountPullConfigurationMandate: Codable, Sendable, Equatable {
-    public var createdAt: String
+    public var createdAt: Date
     public var id: String
     public var ipAddress: String
     public var userAgent: String
 
     public init(
-        createdAt: String,
+        createdAt: Date,
         id: String,
         ipAddress: String,
         userAgent: String
@@ -5005,10 +5012,10 @@ public struct FinancialAccountPullConfigurationMandate: Codable, Sendable, Equat
 
 /// Typed Inttegro domain value.
 public struct FinancialAccountPushConfiguration: Codable, Sendable, Equatable {
-    public var enabledAt: String
+    public var enabledAt: Date
 
     public init(
-        enabledAt: String
+        enabledAt: Date
     ) {
         self.enabledAt = enabledAt
     }
@@ -5322,14 +5329,14 @@ public struct GeneratedSecretKey: Codable, Sendable, Equatable {
     public var id: String
     public var label: String?
     public var tokenType: SecretKeyTokenType
-    public var issuedAt: String
+    public var issuedAt: Date
     public var token: String
 
     public init(
         id: String,
         label: String? = nil,
         tokenType: SecretKeyTokenType,
-        issuedAt: String,
+        issuedAt: Date,
         token: String
     ) {
         self.id = id
@@ -5811,10 +5818,10 @@ public struct MessageTemplate: Codable, Sendable, Equatable {
     public var sms: MessageTemplateSMSContent?
     public var email: MessageTemplateEmailContent?
     public var attachments: [String]?
-    public var createdAt: String
-    public var updatedAt: String
-    public var publishedAt: String?
-    public var archivedAt: String?
+    public var createdAt: Date
+    public var updatedAt: Date
+    public var publishedAt: Date?
+    public var archivedAt: Date?
 
     public init(
         id: String,
@@ -5832,10 +5839,10 @@ public struct MessageTemplate: Codable, Sendable, Equatable {
         sms: MessageTemplateSMSContent? = nil,
         email: MessageTemplateEmailContent? = nil,
         attachments: [String]? = nil,
-        createdAt: String,
-        updatedAt: String,
-        publishedAt: String? = nil,
-        archivedAt: String? = nil
+        createdAt: Date,
+        updatedAt: Date,
+        publishedAt: Date? = nil,
+        archivedAt: Date? = nil
     ) {
         self.id = id
         self.name = name
@@ -6240,21 +6247,21 @@ public struct MessageTemplatesPage: Codable, Sendable, Equatable {
 /// Typed Inttegro domain value.
 public struct OTPTransaction: Codable, Sendable, Equatable {
     public var cancelReason: String?
-    public var canceledAt: String?
-    public var expiresAt: String
+    public var canceledAt: Date?
+    public var expiresAt: Date
     public var fullMessage: String
     public var id: String
-    public var initiatedAt: String
+    public var initiatedAt: Date
     public var status: OTPStatus
     public var transmission: OTPTransmission?
 
     public init(
         cancelReason: String? = nil,
-        canceledAt: String? = nil,
-        expiresAt: String,
+        canceledAt: Date? = nil,
+        expiresAt: Date,
         fullMessage: String,
         id: String,
-        initiatedAt: String,
+        initiatedAt: Date,
         status: OTPStatus,
         transmission: OTPTransmission? = nil
     ) {
@@ -6284,14 +6291,14 @@ public struct OTPTransaction: Codable, Sendable, Equatable {
 public struct OTPTransmission: Codable, Sendable, Equatable {
     public var recipient: String
     public var senderId: String
-    public var sentAt: String?
+    public var sentAt: Date?
     public var sentVia: String?
     public var status: OTPTransmissionStatus?
 
     public init(
         recipient: String,
         senderId: String,
-        sentAt: String? = nil,
+        sentAt: Date? = nil,
         sentVia: String? = nil,
         status: OTPTransmissionStatus? = nil
     ) {
@@ -6332,14 +6339,14 @@ public struct OTPVerification: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct OTPVerificationAttempt: Codable, Sendable, Equatable {
-    public var attemptedAt: String
+    public var attemptedAt: Date
     public var id: String
     public var presentedToken: String
     public var recipient: String
     public var result: OTPVerificationAttemptResult
 
     public init(
-        attemptedAt: String,
+        attemptedAt: Date,
         id: String,
         presentedToken: String,
         recipient: String,
@@ -6377,54 +6384,50 @@ public struct OTPVerificationAttemptResult: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct Order: Codable, Sendable, Equatable {
-    public var canceledAt: String?
+    public var canceledAt: Date?
     public var checkoutSettings: OrderCheckoutSettings?
-    public var completedAt: String?
+    public var completedAt: Date?
     public var createdFrom: OrderCreatedFrom?
     public var customData: CustomData?
     public var customer: OrderCustomer
-    public var expiresAt: String?
+    public var expiresAt: Date?
     public var id: String
-    public var initiatedAt: String
+    public var initiatedAt: Date
     public var invoice: OrderInvoice?
     public var number: String?
     public var receiptNumber: String?
     public var refunds: [Refund]?
     public var invoiceSettings: InvoiceSettings?
     public var status: OrderStatus
-    public var sealedAt: String?
+    public var sealedAt: Date?
     public var lineItemGroup: OrderLineItemGroup?
     public var payment: Payment?
-    public var paidAt: String?
-    public var paymentDueAt: String?
-    public var payoutSettings: OrderPayoutSettings?
+    public var paidAt: Date?
+    public var paymentDueAt: Date?
     public var reference: String?
-    public var shipping: Shipping?
 
     public init(
-        canceledAt: String? = nil,
+        canceledAt: Date? = nil,
         checkoutSettings: OrderCheckoutSettings? = nil,
-        completedAt: String? = nil,
+        completedAt: Date? = nil,
         createdFrom: OrderCreatedFrom? = nil,
         customData: CustomData? = nil,
         customer: OrderCustomer,
-        expiresAt: String? = nil,
+        expiresAt: Date? = nil,
         id: String,
-        initiatedAt: String,
+        initiatedAt: Date,
         invoice: OrderInvoice? = nil,
         number: String? = nil,
         receiptNumber: String? = nil,
         refunds: [Refund]? = nil,
         invoiceSettings: InvoiceSettings? = nil,
         status: OrderStatus,
-        sealedAt: String? = nil,
+        sealedAt: Date? = nil,
         lineItemGroup: OrderLineItemGroup? = nil,
         payment: Payment? = nil,
-        paidAt: String? = nil,
-        paymentDueAt: String? = nil,
-        payoutSettings: OrderPayoutSettings? = nil,
-        reference: String? = nil,
-        shipping: Shipping? = nil
+        paidAt: Date? = nil,
+        paymentDueAt: Date? = nil,
+        reference: String? = nil
     ) {
         self.canceledAt = canceledAt
         self.checkoutSettings = checkoutSettings
@@ -6446,9 +6449,7 @@ public struct Order: Codable, Sendable, Equatable {
         self.payment = payment
         self.paidAt = paidAt
         self.paymentDueAt = paymentDueAt
-        self.payoutSettings = payoutSettings
         self.reference = reference
-        self.shipping = shipping
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -6472,9 +6473,7 @@ public struct Order: Codable, Sendable, Equatable {
         case payment
         case paidAt = "paid_at"
         case paymentDueAt = "payment_due_at"
-        case payoutSettings = "payout_settings"
         case reference
-        case shipping
     }
 }
 
@@ -6761,11 +6760,11 @@ public struct OrderFeeLineItemFee: Codable, Sendable, Equatable {
 /// Typed Inttegro domain value.
 public struct OrderInvoice: Codable, Sendable, Equatable {
     public var number: String?
-    public var format: OrderInvoiceFormat?
+    public var format: OrderInvoiceFormat
 
     public init(
         number: String? = nil,
-        format: OrderInvoiceFormat? = nil
+        format: OrderInvoiceFormat
     ) {
         self.number = number
         self.format = format
@@ -6791,11 +6790,11 @@ public struct OrderInvoiceFormat: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct OrderLineItemGroup: Codable, Sendable, Equatable {
-    public var lineItems: [JSONValue]
+    public var lineItems: [OrderLineItem]
     public var total: Amount
 
     public init(
-        lineItems: [JSONValue],
+        lineItems: [OrderLineItem],
         total: Amount
     ) {
         self.lineItems = lineItems
@@ -6808,16 +6807,31 @@ public struct OrderLineItemGroup: Codable, Sendable, Equatable {
     }
 }
 
-/// Typed Inttegro domain value.
-public struct OrderPage: Codable, Sendable, Equatable {
-    public var number: Int?
-    public var size: Int?
-    public var orders: [Order]?
+public struct OrderDiscountLineItem: Codable, Sendable, Equatable {
+    public var type: String
+    public var discount: OrderDiscount
 
     public init(
-        number: Int? = nil,
-        size: Int? = nil,
-        orders: [Order]? = nil
+        type: String,
+        discount: OrderDiscount
+    ) {
+        self.type = type
+        self.discount = discount
+    }
+}
+
+public struct OrderDiscount: Codable, Sendable, Equatable { public init() {} }
+
+/// Typed Inttegro domain value.
+public struct OrderPage: Codable, Sendable, Equatable {
+    public var number: Int
+    public var size: Int
+    public var orders: [Order]
+
+    public init(
+        number: Int,
+        size: Int,
+        orders: [Order]
     ) {
         self.number = number
         self.size = size
@@ -7071,16 +7085,16 @@ public struct PageFilesRequest: Codable, Sendable, Equatable {
     public var status: FileStatus?
     public var pageNumber: Int?
     public var pageSize: Int?
-    public var createdAfter: String?
-    public var createdBefore: String?
+    public var createdAfter: Date?
+    public var createdBefore: Date?
 
     public init(
         purpose: String? = nil,
         status: FileStatus? = nil,
         pageNumber: Int? = nil,
         pageSize: Int? = nil,
-        createdAfter: String? = nil,
-        createdBefore: String? = nil
+        createdAfter: Date? = nil,
+        createdBefore: Date? = nil
     ) {
         self.purpose = purpose
         self.status = status
@@ -7308,15 +7322,18 @@ public struct Payment: Codable, Sendable, Equatable {
     public var amount: Amount
     public var balanceTransaction: BalanceTransaction?
     public var paymentMethod: PaymentMethodSnapshot?
+    public var billingDetails: PaymentBillingDetails?
+    public var customer: OrderCustomer?
     public var latestAttempt: PaymentAttempt?
     public var nextAction: PaymentNextAction?
-    public var initiatedAt: String
-    public var executedAt: String?
-    public var paidAt: String?
-    public var canceledAt: String?
-    public var dueAt: String?
-    public var expiredAt: String?
-    public var failedAt: String?
+    public var latestError: PaymentError?
+    public var initiatedAt: Date
+    public var executedAt: Date?
+    public var paidAt: Date?
+    public var canceledAt: Date?
+    public var dueAt: Date?
+    public var expiredAt: Date?
+    public var failedAt: Date?
     public var paidOffline: Bool?
     public var paymentMethodTypes: [String]?
     public var payoutConfiguration: PaymentPayoutConfiguration?
@@ -7328,15 +7345,18 @@ public struct Payment: Codable, Sendable, Equatable {
         amount: Amount,
         balanceTransaction: BalanceTransaction? = nil,
         paymentMethod: PaymentMethodSnapshot? = nil,
+        billingDetails: PaymentBillingDetails? = nil,
+        customer: OrderCustomer? = nil,
         latestAttempt: PaymentAttempt? = nil,
         nextAction: PaymentNextAction? = nil,
-        initiatedAt: String,
-        executedAt: String? = nil,
-        paidAt: String? = nil,
-        canceledAt: String? = nil,
-        dueAt: String? = nil,
-        expiredAt: String? = nil,
-        failedAt: String? = nil,
+        latestError: PaymentError? = nil,
+        initiatedAt: Date,
+        executedAt: Date? = nil,
+        paidAt: Date? = nil,
+        canceledAt: Date? = nil,
+        dueAt: Date? = nil,
+        expiredAt: Date? = nil,
+        failedAt: Date? = nil,
         paidOffline: Bool? = nil,
         paymentMethodTypes: [String]? = nil,
         payoutConfiguration: PaymentPayoutConfiguration? = nil
@@ -7347,8 +7367,11 @@ public struct Payment: Codable, Sendable, Equatable {
         self.amount = amount
         self.balanceTransaction = balanceTransaction
         self.paymentMethod = paymentMethod
+        self.billingDetails = billingDetails
+        self.customer = customer
         self.latestAttempt = latestAttempt
         self.nextAction = nextAction
+        self.latestError = latestError
         self.initiatedAt = initiatedAt
         self.executedAt = executedAt
         self.paidAt = paidAt
@@ -7368,8 +7391,11 @@ public struct Payment: Codable, Sendable, Equatable {
         case amount
         case balanceTransaction = "balance_transaction"
         case paymentMethod = "payment_method"
+        case billingDetails = "billing_details"
+        case customer
         case latestAttempt = "latest_attempt"
         case nextAction = "next_action"
+        case latestError = "latest_error"
         case initiatedAt = "initiated_at"
         case executedAt = "executed_at"
         case paidAt = "paid_at"
@@ -7387,21 +7413,24 @@ public struct Payment: Codable, Sendable, Equatable {
 public struct PaymentAttempt: Codable, Sendable, Equatable {
     public var paymentMethodType: String?
     public var paymentMethodId: String?
+    public var error: PaymentAttemptError?
     public var reference: String?
-    public var status: PaymentAttemptStatus?
-    public var initiatedAt: String?
-    public var succeededAt: String?
+    public var status: PaymentAttemptStatus
+    public var initiatedAt: Date
+    public var succeededAt: Date?
 
     public init(
         paymentMethodType: String? = nil,
         paymentMethodId: String? = nil,
+        error: PaymentAttemptError? = nil,
         reference: String? = nil,
-        status: PaymentAttemptStatus? = nil,
-        initiatedAt: String? = nil,
-        succeededAt: String? = nil
+        status: PaymentAttemptStatus,
+        initiatedAt: Date,
+        succeededAt: Date? = nil
     ) {
         self.paymentMethodType = paymentMethodType
         self.paymentMethodId = paymentMethodId
+        self.error = error
         self.reference = reference
         self.status = status
         self.initiatedAt = initiatedAt
@@ -7411,6 +7440,7 @@ public struct PaymentAttempt: Codable, Sendable, Equatable {
     private enum CodingKeys: String, CodingKey {
         case paymentMethodType = "payment_method_type"
         case paymentMethodId = "payment_method_id"
+        case error
         case reference
         case status
         case initiatedAt = "initiated_at"
@@ -7418,44 +7448,81 @@ public struct PaymentAttempt: Codable, Sendable, Equatable {
     }
 }
 
+public struct PaymentAttemptError: Codable, Sendable, Equatable {
+    public var message: String
+    public init(message: String) { self.message = message }
+}
+
+public struct PaymentBillingDetails: Codable, Sendable, Equatable {
+    public var owner: PaymentMethodSnapshotOwner?
+    public init(owner: PaymentMethodSnapshotOwner? = nil) { self.owner = owner }
+}
+
+public struct PaymentError: Codable, Sendable, Equatable {
+    public var message: String
+    public var docsUrl: String
+    public var source: String
+    public var type: String
+    public var code: String
+
+    public init(message: String, docsUrl: String, source: String, type: String, code: String) {
+        self.message = message
+        self.docsUrl = docsUrl
+        self.source = source
+        self.type = type
+        self.code = code
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case message
+        case docsUrl = "docs_url"
+        case source
+        case type
+        case code
+    }
+}
+
 /// Typed Inttegro domain value.
 public struct PaymentMethod: Codable, Sendable, Equatable {
     public var active: Bool
-    public var archivedAt: String?
+    public var archivedAt: Date?
     public var bankAccount: PaymentMethodBankAccount?
-    public var createdAt: String
+    public var card: PaymentMethodCard?
+    public var createdAt: Date
     public var customData: CustomData?
     public var customerId: String
     public var ephemeral: Bool?
-    public var expiresOn: String?
+    public var expiresOn: Date?
     public var id: String
     public var mobileMoney: PaymentMethodMobileMoney?
     public var owner: PaymentMethodOwner?
     public var type: PaymentMethodType
     public var supplied: PaymentMethodSupplied?
     public var verification: PaymentMethodVerification?
-    public var verifiedAt: String?
+    public var verifiedAt: Date?
 
     public init(
         active: Bool,
-        archivedAt: String? = nil,
+        archivedAt: Date? = nil,
         bankAccount: PaymentMethodBankAccount? = nil,
-        createdAt: String,
+        card: PaymentMethodCard? = nil,
+        createdAt: Date,
         customData: CustomData? = nil,
         customerId: String,
         ephemeral: Bool? = nil,
-        expiresOn: String? = nil,
+        expiresOn: Date? = nil,
         id: String,
         mobileMoney: PaymentMethodMobileMoney? = nil,
         owner: PaymentMethodOwner? = nil,
         type: PaymentMethodType,
         supplied: PaymentMethodSupplied? = nil,
         verification: PaymentMethodVerification? = nil,
-        verifiedAt: String? = nil
+        verifiedAt: Date? = nil
     ) {
         self.active = active
         self.archivedAt = archivedAt
         self.bankAccount = bankAccount
+        self.card = card
         self.createdAt = createdAt
         self.customData = customData
         self.customerId = customerId
@@ -7474,6 +7541,7 @@ public struct PaymentMethod: Codable, Sendable, Equatable {
         case active
         case archivedAt = "archived_at"
         case bankAccount = "bank_account"
+        case card
         case createdAt = "created_at"
         case customData = "custom_data"
         case customerId = "customer_id"
@@ -7488,6 +7556,8 @@ public struct PaymentMethod: Codable, Sendable, Equatable {
         case verifiedAt = "verified_at"
     }
 }
+
+public struct PaymentMethodCard: Codable, Sendable, Equatable { public init() {} }
 
 /// Typed Inttegro domain value.
 public struct PaymentMethodBankAccount: Codable, Sendable, Equatable {
@@ -7810,26 +7880,26 @@ public struct PaymentMethodSettings: Codable, Sendable, Equatable {
 public struct PaymentMethodSnapshot: Codable, Sendable, Equatable {
     public var id: String
     public var bankAccount: PaymentMethodSnapshotBankAccount?
-    public var card: JSONData?
-    public var createdAt: String
+    public var card: PaymentMethodCard?
+    public var createdAt: Date
     public var customerId: String
     public var mobileMoney: PaymentMethodSnapshotMobileMoney?
     public var owner: PaymentMethodSnapshotOwner?
     public var type: PaymentMethodType
     public var verified: Bool
-    public var verifiedAt: String?
+    public var verifiedAt: Date?
 
     public init(
         id: String,
         bankAccount: PaymentMethodSnapshotBankAccount? = nil,
-        card: JSONData? = nil,
-        createdAt: String,
+        card: PaymentMethodCard? = nil,
+        createdAt: Date,
         customerId: String,
         mobileMoney: PaymentMethodSnapshotMobileMoney? = nil,
         owner: PaymentMethodSnapshotOwner? = nil,
         type: PaymentMethodType,
         verified: Bool,
-        verifiedAt: String? = nil
+        verifiedAt: Date? = nil
     ) {
         self.id = id
         self.bankAccount = bankAccount
@@ -7951,7 +8021,7 @@ public struct PaymentMethodSupplied: Codable, Sendable, Equatable {
     public var channel: String?
     public var resourceId: String?
     public var resourceType: String?
-    public var suppliedAt: String
+    public var suppliedAt: Date
 
     public init(
         attemptId: String? = nil,
@@ -7959,7 +8029,7 @@ public struct PaymentMethodSupplied: Codable, Sendable, Equatable {
         channel: String? = nil,
         resourceId: String? = nil,
         resourceType: String? = nil,
-        suppliedAt: String
+        suppliedAt: Date
     ) {
         self.attemptId = attemptId
         self.by = by
@@ -8012,15 +8082,15 @@ public struct PaymentMethodTypeSetting: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct PaymentMethodVerification: Codable, Sendable, Equatable {
-    public var completedAt: String?
-    public var initiatedAt: String
+    public var completedAt: Date?
+    public var initiatedAt: Date
     public var mechanism: String?
     public var requestId: String
     public var type: String
 
     public init(
-        completedAt: String? = nil,
-        initiatedAt: String,
+        completedAt: Date? = nil,
+        initiatedAt: Date,
         mechanism: String? = nil,
         requestId: String,
         type: String
@@ -8045,16 +8115,16 @@ public struct PaymentMethodVerification: Codable, Sendable, Equatable {
 public struct PaymentMethodVerificationSession: Codable, Sendable, Equatable {
     public var paymentMethodId: String
     public var status: String
-    public var tokenSentAt: String?
-    public var expiresAt: String?
-    public var delivery: JSONData?
+    public var tokenSentAt: Date?
+    public var expiresAt: Date?
+    public var delivery: PaymentMethodVerificationDelivery?
 
     public init(
         paymentMethodId: String,
         status: String,
-        tokenSentAt: String? = nil,
-        expiresAt: String? = nil,
-        delivery: JSONData? = nil
+        tokenSentAt: Date? = nil,
+        expiresAt: Date? = nil,
+        delivery: PaymentMethodVerificationDelivery? = nil
     ) {
         self.paymentMethodId = paymentMethodId
         self.status = status
@@ -8072,47 +8142,65 @@ public struct PaymentMethodVerificationSession: Codable, Sendable, Equatable {
     }
 }
 
+public struct PaymentMethodVerificationDelivery: Codable, Sendable, Equatable {
+    public var recipient: String?
+    public var channel: String?
+    public var senderId: String?
+
+    public init(recipient: String? = nil, channel: String? = nil, senderId: String? = nil) {
+        self.recipient = recipient
+        self.channel = channel
+        self.senderId = senderId
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case recipient
+        case channel
+        case senderId = "sender_id"
+    }
+}
+
 /// Typed Inttegro domain value.
 public struct PaymentNextAction: Codable, Sendable, Equatable {
     public var type: PaymentNextActionType
     public var confirmPayment: PaymentNextActionConfirmPayment?
-    public var execute: JSONData?
     public var redirect: PaymentNextActionRedirect?
     public var authorize: PaymentNextActionAuthorize?
+    public var requestConfirmation: PaymentNextActionRequestConfirmation?
 
     public init(
         type: PaymentNextActionType,
         confirmPayment: PaymentNextActionConfirmPayment? = nil,
-        execute: JSONData? = nil,
         redirect: PaymentNextActionRedirect? = nil,
-        authorize: PaymentNextActionAuthorize? = nil
+        authorize: PaymentNextActionAuthorize? = nil,
+        requestConfirmation: PaymentNextActionRequestConfirmation? = nil
     ) {
         self.type = type
         self.confirmPayment = confirmPayment
-        self.execute = execute
         self.redirect = redirect
         self.authorize = authorize
+        self.requestConfirmation = requestConfirmation
     }
 
     private enum CodingKeys: String, CodingKey {
         case type
         case confirmPayment = "confirm_payment"
-        case execute
         case redirect
         case authorize
+        case requestConfirmation = "request_confirmation"
     }
 }
 
 /// Typed Inttegro domain value.
 public struct PaymentNextActionAuthorize: Codable, Sendable, Equatable {
-    public var beneficiary: String?
-    public var scheme: String?
-    public var expiresAt: String?
+    public var beneficiary: String
+    public var scheme: String
+    public var expiresAt: Date
 
     public init(
-        beneficiary: String? = nil,
-        scheme: String? = nil,
-        expiresAt: String? = nil
+        beneficiary: String,
+        scheme: String,
+        expiresAt: Date
     ) {
         self.beneficiary = beneficiary
         self.scheme = scheme
@@ -8128,20 +8216,20 @@ public struct PaymentNextActionAuthorize: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct PaymentNextActionConfirmPayment: Codable, Sendable, Equatable {
-    public var expiresAt: String?
-    public var scheme: String?
+    public var expiresAt: Date
+    public var scheme: String
     public var request: PaymentNextActionConfirmPaymentRequest?
     public var attempt: PaymentNextActionConfirmPaymentAttempt?
-    public var confirmed: Bool?
-    public var status: String?
+    public var confirmed: Bool
+    public var status: String
 
     public init(
-        expiresAt: String? = nil,
-        scheme: String? = nil,
+        expiresAt: Date,
+        scheme: String,
         request: PaymentNextActionConfirmPaymentRequest? = nil,
         attempt: PaymentNextActionConfirmPaymentAttempt? = nil,
-        confirmed: Bool? = nil,
-        status: String? = nil
+        confirmed: Bool,
+        status: String
     ) {
         self.expiresAt = expiresAt
         self.scheme = scheme
@@ -8163,25 +8251,22 @@ public struct PaymentNextActionConfirmPayment: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct PaymentNextActionConfirmPaymentAttempt: Codable, Sendable, Equatable {
-    public var status: String?
-    public var confirmed: Bool?
-    public var reason: String?
-    public var token: String?
-    public var executedAt: String?
-    public var createdAt: String?
+    public var status: String
+    public var confirmed: Bool
+    public var reason: String
+    public var executedAt: Date?
+    public var createdAt: Date
 
     public init(
-        status: String? = nil,
-        confirmed: Bool? = nil,
-        reason: String? = nil,
-        token: String? = nil,
-        executedAt: String? = nil,
-        createdAt: String? = nil
+        status: String,
+        confirmed: Bool,
+        reason: String,
+        executedAt: Date? = nil,
+        createdAt: Date
     ) {
         self.status = status
         self.confirmed = confirmed
         self.reason = reason
-        self.token = token
         self.executedAt = executedAt
         self.createdAt = createdAt
     }
@@ -8190,7 +8275,6 @@ public struct PaymentNextActionConfirmPaymentAttempt: Codable, Sendable, Equatab
         case status
         case confirmed
         case reason
-        case token
         case executedAt = "executed_at"
         case createdAt = "created_at"
     }
@@ -8198,24 +8282,27 @@ public struct PaymentNextActionConfirmPaymentAttempt: Codable, Sendable, Equatab
 
 /// Typed Inttegro domain value.
 public struct PaymentNextActionConfirmPaymentRequest: Codable, Sendable, Equatable {
-    public var id: String?
-    public var recipient: String?
-    public var sentVia: PaymentConfirmationChannel?
-    public var tokenSize: Int?
-    public var senderId: String?
+    public var id: String
+    public var recipient: String
+    public var sentVia: PaymentConfirmationChannel
+    public var tokenSize: Int
+    public var senderId: String
+    public var status: String?
 
     public init(
-        id: String? = nil,
-        recipient: String? = nil,
-        sentVia: PaymentConfirmationChannel? = nil,
-        tokenSize: Int? = nil,
-        senderId: String? = nil
+        id: String,
+        recipient: String,
+        sentVia: PaymentConfirmationChannel,
+        tokenSize: Int,
+        senderId: String,
+        status: String? = nil
     ) {
         self.id = id
         self.recipient = recipient
         self.sentVia = sentVia
         self.tokenSize = tokenSize
         self.senderId = senderId
+        self.status = status
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -8224,18 +8311,19 @@ public struct PaymentNextActionConfirmPaymentRequest: Codable, Sendable, Equatab
         case sentVia = "sent_via"
         case tokenSize = "token_size"
         case senderId = "sender_id"
+        case status
     }
 }
 
 /// Typed Inttegro domain value.
 public struct PaymentNextActionRedirect: Codable, Sendable, Equatable {
-    public var redirectUrl: String?
-    public var validUntil: String?
+    public var redirectUrl: String
+    public var validUntil: Date
     public var latestVisit: PaymentNextActionRedirectLatestVisit?
 
     public init(
-        redirectUrl: String? = nil,
-        validUntil: String? = nil,
+        redirectUrl: String,
+        validUntil: Date,
         latestVisit: PaymentNextActionRedirectLatestVisit? = nil
     ) {
         self.redirectUrl = redirectUrl
@@ -8252,14 +8340,14 @@ public struct PaymentNextActionRedirect: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct PaymentNextActionRedirectLatestVisit: Codable, Sendable, Equatable {
-    public var userAgent: String?
-    public var ipAddress: String?
-    public var at: String?
+    public var userAgent: String
+    public var ipAddress: String
+    public var at: Date
 
     public init(
-        userAgent: String? = nil,
-        ipAddress: String? = nil,
-        at: String? = nil
+        userAgent: String,
+        ipAddress: String,
+        at: Date
     ) {
         self.userAgent = userAgent
         self.ipAddress = ipAddress
@@ -8273,14 +8361,29 @@ public struct PaymentNextActionRedirectLatestVisit: Codable, Sendable, Equatable
     }
 }
 
+public struct PaymentNextActionRequestConfirmation: Codable, Sendable, Equatable {
+    public var lastRequest: PaymentNextActionConfirmPaymentRequest?
+    public var after: Date?
+
+    public init(lastRequest: PaymentNextActionConfirmPaymentRequest? = nil, after: Date? = nil) {
+        self.lastRequest = lastRequest
+        self.after = after
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case lastRequest = "last_request"
+        case after
+    }
+}
+
 /// Typed Inttegro domain value.
 public struct PaymentPayoutConfiguration: Codable, Sendable, Equatable {
-    public var enableFx: Bool?
-    public var destination: PaymentPayoutConfigurationDestination?
+    public var enableFx: Bool
+    public var destination: PaymentPayoutConfigurationDestination
 
     public init(
-        enableFx: Bool? = nil,
-        destination: PaymentPayoutConfigurationDestination? = nil
+        enableFx: Bool,
+        destination: PaymentPayoutConfigurationDestination
     ) {
         self.enableFx = enableFx
         self.destination = destination
@@ -8294,10 +8397,10 @@ public struct PaymentPayoutConfiguration: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct PaymentPayoutConfigurationDestination: Codable, Sendable, Equatable {
-    public var financialAccountId: String?
+    public var financialAccountId: String
 
     public init(
-        financialAccountId: String? = nil
+        financialAccountId: String
     ) {
         self.financialAccountId = financialAccountId
     }
@@ -8311,50 +8414,50 @@ public struct PaymentPayoutConfigurationDestination: Codable, Sendable, Equatabl
 public struct Payout: Codable, Sendable, Equatable {
     public var amount: Amount?
     public var balanceTransactions: [String]?
-    public var canceledAt: String?
+    public var canceledAt: Date?
     public var customData: CustomData?
     public var destinationId: String
     public var error: PayoutError?
-    public var executeAfter: String
+    public var executeAfter: Date
     public var executedBy: String?
-    public var expectedAt: String?
-    public var failedAt: String?
+    public var expectedAt: Date?
+    public var failedAt: Date?
     public var id: String
-    public var initiatedAt: String
+    public var initiatedAt: Date
     public var initiatedBy: String?
     public var maxAmount: Amount
     public var reference: String?
     public var scheduleId: String?
-    public var scheduledAt: String?
+    public var scheduledAt: Date?
     public var scheduledBy: String?
-    public var sentAt: String?
+    public var sentAt: Date?
     public var sourceId: String?
     public var status: PayoutStatus
-    public var succeededAt: String?
+    public var succeededAt: Date?
 
     public init(
         amount: Amount? = nil,
         balanceTransactions: [String]? = nil,
-        canceledAt: String? = nil,
+        canceledAt: Date? = nil,
         customData: CustomData? = nil,
         destinationId: String,
         error: PayoutError? = nil,
-        executeAfter: String,
+        executeAfter: Date,
         executedBy: String? = nil,
-        expectedAt: String? = nil,
-        failedAt: String? = nil,
+        expectedAt: Date? = nil,
+        failedAt: Date? = nil,
         id: String,
-        initiatedAt: String,
+        initiatedAt: Date,
         initiatedBy: String? = nil,
         maxAmount: Amount,
         reference: String? = nil,
         scheduleId: String? = nil,
-        scheduledAt: String? = nil,
+        scheduledAt: Date? = nil,
         scheduledBy: String? = nil,
-        sentAt: String? = nil,
+        sentAt: Date? = nil,
         sourceId: String? = nil,
         status: PayoutStatus,
-        succeededAt: String? = nil
+        succeededAt: Date? = nil
     ) {
         self.amount = amount
         self.balanceTransactions = balanceTransactions
@@ -8410,13 +8513,13 @@ public struct Payout: Codable, Sendable, Equatable {
 public struct PayoutError: Codable, Sendable, Equatable {
     public var cause: String
     public var message: String
-    public var occurredAt: String
+    public var occurredAt: Date
     public var type: String
 
     public init(
         cause: String,
         message: String,
-        occurredAt: String,
+        occurredAt: Date,
         type: String
     ) {
         self.cause = cause
@@ -8648,43 +8751,43 @@ public struct PriceEmbeddedProduct: Codable, Sendable, Equatable {
     public var id: String
     public var about: String?
     public var active: Bool
-    public var archivedAt: String?
+    public var archivedAt: Date?
     public var attributes: [PriceEmbeddedProductAttributesItem]?
     public var category: String?
-    public var createdAt: String
+    public var createdAt: Date
     public var customData: CustomData?
     public var description: String?
     public var dimensions: ProductDimensions?
     public var media: ProductMedia?
     public var name: String
-    public var publishedAt: String?
+    public var publishedAt: Date?
     public var reference: String?
     public var shipment: ProductShipment?
     public var taxCode: String?
     public var type: ProductType
     public var unitDim: String?
-    public var updatedAt: String?
+    public var updatedAt: Date?
 
     public init(
         id: String,
         about: String? = nil,
         active: Bool,
-        archivedAt: String? = nil,
+        archivedAt: Date? = nil,
         attributes: [PriceEmbeddedProductAttributesItem]? = nil,
         category: String? = nil,
-        createdAt: String,
+        createdAt: Date,
         customData: CustomData? = nil,
         description: String? = nil,
         dimensions: ProductDimensions? = nil,
         media: ProductMedia? = nil,
         name: String,
-        publishedAt: String? = nil,
+        publishedAt: Date? = nil,
         reference: String? = nil,
         shipment: ProductShipment? = nil,
         taxCode: String? = nil,
         type: ProductType,
         unitDim: String? = nil,
-        updatedAt: String? = nil
+        updatedAt: Date? = nil
     ) {
         self.id = id
         self.about = about
@@ -8770,9 +8873,9 @@ public struct PricePageItem: Codable, Sendable, Equatable {
     public var nominal: Amount
     public var productId: String?
     public var product: PriceEmbeddedProduct?
-    public var createdAt: String
-    public var updatedAt: String?
-    public var archivedAt: String?
+    public var createdAt: Date
+    public var updatedAt: Date?
+    public var archivedAt: Date?
 
     public init(
         id: String,
@@ -8782,9 +8885,9 @@ public struct PricePageItem: Codable, Sendable, Equatable {
         nominal: Amount,
         productId: String? = nil,
         product: PriceEmbeddedProduct? = nil,
-        createdAt: String,
-        updatedAt: String? = nil,
-        archivedAt: String? = nil
+        createdAt: Date,
+        updatedAt: Date? = nil,
+        archivedAt: Date? = nil
     ) {
         self.id = id
         self.label = label
@@ -8866,10 +8969,10 @@ public struct Product: Codable, Sendable, Equatable {
     public var dimensions: ProductDimensions?
     public var customData: CustomData?
     public var active: Bool
-    public var createdAt: String
-    public var updatedAt: String?
-    public var archivedAt: String?
-    public var publishedAt: String?
+    public var createdAt: Date
+    public var updatedAt: Date?
+    public var archivedAt: Date?
+    public var publishedAt: Date?
     public var unitDim: String?
 
     public init(
@@ -8888,10 +8991,10 @@ public struct Product: Codable, Sendable, Equatable {
         dimensions: ProductDimensions? = nil,
         customData: CustomData? = nil,
         active: Bool,
-        createdAt: String,
-        updatedAt: String? = nil,
-        archivedAt: String? = nil,
-        publishedAt: String? = nil,
+        createdAt: Date,
+        updatedAt: Date? = nil,
+        archivedAt: Date? = nil,
+        publishedAt: Date? = nil,
         unitDim: String? = nil
     ) {
         self.id = id
@@ -9305,14 +9408,14 @@ public struct ProductMediaInput: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct ProductPage: Codable, Sendable, Equatable {
-    public var number: Int?
-    public var size: Int?
-    public var products: [Product]?
+    public var number: Int
+    public var size: Int
+    public var products: [Product]
 
     public init(
-        number: Int? = nil,
-        size: Int? = nil,
-        products: [Product]? = nil
+        number: Int,
+        size: Int,
+        products: [Product]
     ) {
         self.number = number
         self.size = size
@@ -9343,19 +9446,19 @@ public struct ProductPriceSummary: Codable, Sendable, Equatable {
 /// Typed Inttegro domain value.
 public struct ProductShipment: Codable, Sendable, Equatable {
     public var type: ProductShipmentType
-    public var delivery: JSONData?
-    public var download: JSONData?
-    public var render: JSONData?
-    public var service: JSONData?
-    public var stream: JSONData?
+    public var delivery: ProductDelivery?
+    public var download: ProductDownload?
+    public var render: ProductRender?
+    public var service: ProductService?
+    public var stream: ProductStream?
 
     public init(
         type: ProductShipmentType,
-        delivery: JSONData? = nil,
-        download: JSONData? = nil,
-        render: JSONData? = nil,
-        service: JSONData? = nil,
-        stream: JSONData? = nil
+        delivery: ProductDelivery? = nil,
+        download: ProductDownload? = nil,
+        render: ProductRender? = nil,
+        service: ProductService? = nil,
+        stream: ProductStream? = nil
     ) {
         self.type = type
         self.delivery = delivery
@@ -9365,6 +9468,12 @@ public struct ProductShipment: Codable, Sendable, Equatable {
         self.stream = stream
     }
 }
+
+public struct ProductDelivery: Codable, Sendable, Equatable { public init() {} }
+public struct ProductDownload: Codable, Sendable, Equatable { public init() {} }
+public struct ProductRender: Codable, Sendable, Equatable { public init() {} }
+public struct ProductService: Codable, Sendable, Equatable { public init() {} }
+public struct ProductStream: Codable, Sendable, Equatable { public init() {} }
 
 /// Typed Inttegro request parameters.
 public struct ProductShipmentInput: Codable, Sendable, Equatable {
@@ -9398,34 +9507,34 @@ public struct PublicFileStorage: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct PurchaseIntent: Codable, Sendable, Equatable {
-    public var activity: PurchaseIntentActivity?
+    public var activity: PurchaseIntentActivityLog?
     public var allowVariants: Bool
-    public var createdAt: String
-    public var expiresAt: String?
+    public var createdAt: Date
+    public var expiresAt: Date?
     public var id: String
-    public var inactiveAt: String?
+    public var inactiveAt: Date?
     public var merchant: PurchaseIntentMerchant?
     public var price: PurchaseIntentPrice?
     public var product: PurchaseIntentProduct?
     public var quantity: PurchaseIntentQuantity
     public var status: PurchaseIntentStatus
-    public var updatedAt: String?
+    public var updatedAt: Date?
     public var usage: PurchaseIntentUsage
     public var variantSet: PurchaseIntentVariantSet?
 
     public init(
-        activity: PurchaseIntentActivity? = nil,
+        activity: PurchaseIntentActivityLog? = nil,
         allowVariants: Bool,
-        createdAt: String,
-        expiresAt: String? = nil,
+        createdAt: Date,
+        expiresAt: Date? = nil,
         id: String,
-        inactiveAt: String? = nil,
+        inactiveAt: Date? = nil,
         merchant: PurchaseIntentMerchant? = nil,
         price: PurchaseIntentPrice? = nil,
         product: PurchaseIntentProduct? = nil,
         quantity: PurchaseIntentQuantity,
         status: PurchaseIntentStatus,
-        updatedAt: String? = nil,
+        updatedAt: Date? = nil,
         usage: PurchaseIntentUsage,
         variantSet: PurchaseIntentVariantSet? = nil
     ) {
@@ -9464,7 +9573,7 @@ public struct PurchaseIntent: Codable, Sendable, Equatable {
 }
 
 /// Typed Inttegro domain value.
-public struct PurchaseIntentActivity: Codable, Sendable, Equatable {
+public struct PurchaseIntentActivityLog: Codable, Sendable, Equatable {
     public var recent: [PurchaseIntentActivity]?
 
     public init(
@@ -9475,26 +9584,191 @@ public struct PurchaseIntentActivity: Codable, Sendable, Equatable {
 }
 
 /// Typed Inttegro domain value.
+public struct PurchaseIntentActivity: Codable, Sendable, Equatable {
+    public var amount: Amount?
+    public var attribution: PurchaseIntentActivityAttribution?
+    public var createdAt: Date
+    public var errorCode: String?
+    public var id: String
+    public var orderId: String?
+    public var paymentId: String?
+    public var productId: String?
+    public var purchaseIntentId: String
+    public var quantity: Int?
+    public var source: String?
+    public var type: PurchaseIntentActivityType
+    public var variantProductId: String?
+    public var visitor: PurchaseIntentActivityVisitor?
+
+    public init(
+        amount: Amount? = nil,
+        attribution: PurchaseIntentActivityAttribution? = nil,
+        createdAt: Date,
+        errorCode: String? = nil,
+        id: String,
+        orderId: String? = nil,
+        paymentId: String? = nil,
+        productId: String? = nil,
+        purchaseIntentId: String,
+        quantity: Int? = nil,
+        source: String? = nil,
+        type: PurchaseIntentActivityType,
+        variantProductId: String? = nil,
+        visitor: PurchaseIntentActivityVisitor? = nil
+    ) {
+        self.amount = amount
+        self.attribution = attribution
+        self.createdAt = createdAt
+        self.errorCode = errorCode
+        self.id = id
+        self.orderId = orderId
+        self.paymentId = paymentId
+        self.productId = productId
+        self.purchaseIntentId = purchaseIntentId
+        self.quantity = quantity
+        self.source = source
+        self.type = type
+        self.variantProductId = variantProductId
+        self.visitor = visitor
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case amount
+        case attribution
+        case createdAt = "created_at"
+        case errorCode = "error_code"
+        case id
+        case orderId = "order_id"
+        case paymentId = "payment_id"
+        case productId = "product_id"
+        case purchaseIntentId = "purchase_intent_id"
+        case quantity
+        case source
+        case type
+        case variantProductId = "variant_product_id"
+        case visitor
+    }
+}
+
+/// Typed Inttegro domain value.
+public struct PurchaseIntentActivityAttribution: Codable, Sendable, Equatable {
+    public var campaign: String?
+    public var channel: String?
+    public var content: String?
+    public var landingUrl: String?
+    public var medium: String?
+    public var referrer: String?
+    public var referrerHost: String?
+    public var source: String?
+    public var term: String?
+
+    public init(
+        campaign: String? = nil,
+        channel: String? = nil,
+        content: String? = nil,
+        landingUrl: String? = nil,
+        medium: String? = nil,
+        referrer: String? = nil,
+        referrerHost: String? = nil,
+        source: String? = nil,
+        term: String? = nil
+    ) {
+        self.campaign = campaign
+        self.channel = channel
+        self.content = content
+        self.landingUrl = landingUrl
+        self.medium = medium
+        self.referrer = referrer
+        self.referrerHost = referrerHost
+        self.source = source
+        self.term = term
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case campaign
+        case channel
+        case content
+        case landingUrl = "landing_url"
+        case medium
+        case referrer
+        case referrerHost = "referrer_host"
+        case source
+        case term
+    }
+}
+
+/// Typed Inttegro domain value.
+public struct PurchaseIntentActivityVisitor: Codable, Sendable, Equatable {
+    public var browser: String?
+    public var city: String?
+    public var country: String?
+    public var device: String?
+    public var ipAddress: String?
+    public var os: String?
+    public var region: String?
+    public var sessionId: String?
+    public var timezone: String?
+    public var userAgent: String?
+    public var visitorId: String?
+
+    public init(
+        browser: String? = nil,
+        city: String? = nil,
+        country: String? = nil,
+        device: String? = nil,
+        ipAddress: String? = nil,
+        os: String? = nil,
+        region: String? = nil,
+        sessionId: String? = nil,
+        timezone: String? = nil,
+        userAgent: String? = nil,
+        visitorId: String? = nil
+    ) {
+        self.browser = browser
+        self.city = city
+        self.country = country
+        self.device = device
+        self.ipAddress = ipAddress
+        self.os = os
+        self.region = region
+        self.sessionId = sessionId
+        self.timezone = timezone
+        self.userAgent = userAgent
+        self.visitorId = visitorId
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case browser
+        case city
+        case country
+        case device
+        case ipAddress = "ip_address"
+        case os
+        case region
+        case sessionId = "session_id"
+        case timezone
+        case userAgent = "user_agent"
+        case visitorId = "visitor_id"
+    }
+}
+
+/// Typed Inttegro domain value.
 public struct PurchaseIntentMerchant: Codable, Sendable, Equatable {
-    public var appId: String?
     public var appName: String?
     public var organizationId: String?
     public var organizationName: String?
 
     public init(
-        appId: String? = nil,
         appName: String? = nil,
         organizationId: String? = nil,
         organizationName: String? = nil
     ) {
-        self.appId = appId
         self.appName = appName
         self.organizationId = organizationId
         self.organizationName = organizationName
     }
 
     private enum CodingKeys: String, CodingKey {
-        case appId = "app_id"
         case appName = "app_name"
         case organizationId = "organization_id"
         case organizationName = "organization_name"
@@ -9572,22 +9846,22 @@ public struct PurchaseIntentProduct: Codable, Sendable, Equatable {
     public var id: String
     public var about: String?
     public var active: Bool
-    public var archivedAt: String?
+    public var archivedAt: Date?
     public var attributes: [PurchaseIntentProductAttributesItem]?
     public var category: String?
-    public var createdAt: String
+    public var createdAt: Date
     public var customData: CustomData?
     public var description: String?
     public var dimensions: ProductDimensions?
     public var media: ProductMedia?
     public var name: String
-    public var publishedAt: String?
+    public var publishedAt: Date?
     public var reference: String?
     public var shipment: ProductShipment?
     public var taxCode: String?
     public var type: ProductType
     public var unitDim: String?
-    public var updatedAt: String?
+    public var updatedAt: Date?
     public var prices: [ProductPriceSummary]?
     public var variantSetId: String?
 
@@ -9595,22 +9869,22 @@ public struct PurchaseIntentProduct: Codable, Sendable, Equatable {
         id: String,
         about: String? = nil,
         active: Bool,
-        archivedAt: String? = nil,
+        archivedAt: Date? = nil,
         attributes: [PurchaseIntentProductAttributesItem]? = nil,
         category: String? = nil,
-        createdAt: String,
+        createdAt: Date,
         customData: CustomData? = nil,
         description: String? = nil,
         dimensions: ProductDimensions? = nil,
         media: ProductMedia? = nil,
         name: String,
-        publishedAt: String? = nil,
+        publishedAt: Date? = nil,
         reference: String? = nil,
         shipment: ProductShipment? = nil,
         taxCode: String? = nil,
         type: ProductType,
         unitDim: String? = nil,
-        updatedAt: String? = nil,
+        updatedAt: Date? = nil,
         prices: [ProductPriceSummary]? = nil,
         variantSetId: String? = nil
     ) {
@@ -9715,11 +9989,11 @@ public struct PurchaseIntentUsage: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct PurchaseIntentUsageOrder: Codable, Sendable, Equatable {
-    public var createdAt: String
+    public var createdAt: Date
     public var id: String
 
     public init(
-        createdAt: String,
+        createdAt: Date,
         id: String
     ) {
         self.createdAt = createdAt
@@ -9829,35 +10103,35 @@ public struct PurchaseIntentVariantSet: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct Refund: Codable, Sendable, Equatable {
-    public var canceledAt: String?
-    public var createdAt: String
+    public var canceledAt: Date?
+    public var createdAt: Date
     public var customData: CustomData?
-    public var failedAt: String?
+    public var failedAt: Date?
     public var id: String
     public var lineItems: [RefundLineItem]
     public var orderId: String
-    public var processingAt: String?
+    public var processingAt: Date?
     public var reason: RefundReason
     public var reasonDetails: String?
     public var reference: String?
     public var status: RefundStatus
-    public var succeededAt: String?
+    public var succeededAt: Date?
     public var total: Amount
 
     public init(
-        canceledAt: String? = nil,
-        createdAt: String,
+        canceledAt: Date? = nil,
+        createdAt: Date,
         customData: CustomData? = nil,
-        failedAt: String? = nil,
+        failedAt: Date? = nil,
         id: String,
         lineItems: [RefundLineItem],
         orderId: String,
-        processingAt: String? = nil,
+        processingAt: Date? = nil,
         reason: RefundReason,
         reasonDetails: String? = nil,
         reference: String? = nil,
         status: RefundStatus,
-        succeededAt: String? = nil,
+        succeededAt: Date? = nil,
         total: Amount
     ) {
         self.canceledAt = canceledAt
@@ -10072,7 +10346,7 @@ public struct ResourceSupply: Codable, Sendable, Equatable {
     public var channel: String?
     public var resourceId: String?
     public var resourceType: String?
-    public var suppliedAt: String
+    public var suppliedAt: Date
 
     public init(
         attemptId: String? = nil,
@@ -10080,7 +10354,7 @@ public struct ResourceSupply: Codable, Sendable, Equatable {
         channel: String? = nil,
         resourceId: String? = nil,
         resourceType: String? = nil,
-        suppliedAt: String
+        suppliedAt: Date
     ) {
         self.attemptId = attemptId
         self.by = by
@@ -10185,34 +10459,34 @@ public struct RevokeFileLinkRequest: Codable, Sendable, Equatable {
 public struct ScheduleCancelDetail: Codable, Sendable, Equatable {
     public var chimeIds: [String]?
     public var content: String
-    public var createdAt: String
+    public var createdAt: Date
     public var customerIds: [String]?
     public var email: ChimeEmailMessage?
     public var errors: [ScheduleError]?
-    public var executedAt: String?
+    public var executedAt: Date?
     public var id: String
     public var idempotencyKey: String?
     public var purpose: String?
     public var recipients: [String]
-    public var sendAfter: String
+    public var sendAfter: Date
     public var senderId: String
-    public var canceledAt: String?
+    public var canceledAt: Date?
 
     public init(
         chimeIds: [String]? = nil,
         content: String,
-        createdAt: String,
+        createdAt: Date,
         customerIds: [String]? = nil,
         email: ChimeEmailMessage? = nil,
         errors: [ScheduleError]? = nil,
-        executedAt: String? = nil,
+        executedAt: Date? = nil,
         id: String,
         idempotencyKey: String? = nil,
         purpose: String? = nil,
         recipients: [String],
-        sendAfter: String,
+        sendAfter: Date,
         senderId: String,
-        canceledAt: String? = nil
+        canceledAt: Date? = nil
     ) {
         self.chimeIds = chimeIds
         self.content = content
@@ -10257,7 +10531,7 @@ public struct ScheduleChimeRequest: Codable, Sendable, Equatable {
     public var senderId: String?
     public var purpose: String?
     public var recipients: [JSONValue]
-    public var sendAfter: String
+    public var sendAfter: Date
 
     public init(
         requestMeta: ScheduleChimeRequestRequestMeta? = nil,
@@ -10267,7 +10541,7 @@ public struct ScheduleChimeRequest: Codable, Sendable, Equatable {
         senderId: String? = nil,
         purpose: String? = nil,
         recipients: [JSONValue],
-        sendAfter: String
+        sendAfter: Date
     ) {
         self.requestMeta = requestMeta
         self.fullMessage = fullMessage
@@ -10308,29 +10582,29 @@ public struct ScheduleChimeRequestRequestMeta: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct ScheduleCreationDetail: Codable, Sendable, Equatable {
-    public var createdAt: String
+    public var createdAt: Date
     public var customerIds: [String]?
     public var email: ChimeEmailMessage?
-    public var executedAt: String?
+    public var executedAt: Date?
     public var fullMessage: String
     public var id: String
     public var idempotencyKey: String?
     public var purpose: String?
     public var recipients: [String]?
-    public var sendAfter: String
+    public var sendAfter: Date
     public var senderId: String
 
     public init(
-        createdAt: String,
+        createdAt: Date,
         customerIds: [String]? = nil,
         email: ChimeEmailMessage? = nil,
-        executedAt: String? = nil,
+        executedAt: Date? = nil,
         fullMessage: String,
         id: String,
         idempotencyKey: String? = nil,
         purpose: String? = nil,
         recipients: [String]? = nil,
-        sendAfter: String,
+        sendAfter: Date,
         senderId: String
     ) {
         self.createdAt = createdAt
@@ -10365,31 +10639,31 @@ public struct ScheduleCreationDetail: Codable, Sendable, Equatable {
 public struct ScheduleDetail: Codable, Sendable, Equatable {
     public var chimeIds: [String]?
     public var content: String
-    public var createdAt: String
+    public var createdAt: Date
     public var customerIds: [String]?
     public var email: ChimeEmailMessage?
     public var errors: [ScheduleError]?
-    public var executedAt: String?
+    public var executedAt: Date?
     public var id: String
     public var idempotencyKey: String?
     public var purpose: String?
     public var recipients: [String]
-    public var sendAfter: String
+    public var sendAfter: Date
     public var senderId: String
 
     public init(
         chimeIds: [String]? = nil,
         content: String,
-        createdAt: String,
+        createdAt: Date,
         customerIds: [String]? = nil,
         email: ChimeEmailMessage? = nil,
         errors: [ScheduleError]? = nil,
-        executedAt: String? = nil,
+        executedAt: Date? = nil,
         id: String,
         idempotencyKey: String? = nil,
         purpose: String? = nil,
         recipients: [String],
-        sendAfter: String,
+        sendAfter: Date,
         senderId: String
     ) {
         self.chimeIds = chimeIds
@@ -10449,13 +10723,13 @@ public struct ScheduleError: Codable, Sendable, Equatable {
 
 /// Typed Inttegro request parameters.
 public struct SchedulePayoutRequest: Codable, Sendable, Equatable {
-    public var executeAfter: String?
+    public var executeAfter: Date?
     public var maxAmount: Int?
     public var destinationId: String
     public var reference: String
 
     public init(
-        executeAfter: String? = nil,
+        executeAfter: Date? = nil,
         maxAmount: Int? = nil,
         destinationId: String,
         reference: String
@@ -10479,26 +10753,26 @@ public struct SecretKey: Codable, Sendable, Equatable {
     public var id: String
     public var label: String?
     public var tokenType: SecretKeyTokenType
-    public var issuedAt: String
-    public var updatedAt: String?
-    public var expiresAt: String?
+    public var issuedAt: Date
+    public var updatedAt: Date?
+    public var expiresAt: Date?
     public var status: SecretKeyStatus
     public var active: Bool
-    public var revokedAt: String?
-    public var lastUsedAt: String?
+    public var revokedAt: Date?
+    public var lastUsedAt: Date?
     public var usageCount: Int?
 
     public init(
         id: String,
         label: String? = nil,
         tokenType: SecretKeyTokenType,
-        issuedAt: String,
-        updatedAt: String? = nil,
-        expiresAt: String? = nil,
+        issuedAt: Date,
+        updatedAt: Date? = nil,
+        expiresAt: Date? = nil,
         status: SecretKeyStatus,
         active: Bool,
-        revokedAt: String? = nil,
-        lastUsedAt: String? = nil,
+        revokedAt: Date? = nil,
+        lastUsedAt: Date? = nil,
         usageCount: Int? = nil
     ) {
         self.id = id
@@ -10643,12 +10917,12 @@ public struct SecretKeyUsageRequest: Codable, Sendable, Equatable {
 /// Typed Inttegro domain value.
 public struct SecretKeyUsageRow: Codable, Sendable, Equatable {
     public var secretKeyId: String
-    public var occurredAt: String
+    public var occurredAt: Date
     public var authResult: SecretKeyAuthResult
 
     public init(
         secretKeyId: String,
-        occurredAt: String,
+        occurredAt: Date,
         authResult: SecretKeyAuthResult
     ) {
         self.secretKeyId = secretKeyId
@@ -10971,7 +11245,7 @@ public struct UpdateOrderRequest: Codable, Sendable, Equatable {
     public var customData: CustomData?
     public var invoiceSettings: InvoiceSettingsInput?
     public var finalize: Bool?
-    public var lineItems: [JSONValue]?
+    public var lineItems: [LineItemInput]?
     public var number: String?
     public var receiptNumber: String?
     public var paymentMethodData: UpdateOrderRequestPaymentMethodData?
@@ -10985,7 +11259,7 @@ public struct UpdateOrderRequest: Codable, Sendable, Equatable {
         customData: CustomData? = nil,
         invoiceSettings: InvoiceSettingsInput? = nil,
         finalize: Bool? = nil,
-        lineItems: [JSONValue]? = nil,
+        lineItems: [LineItemInput]? = nil,
         number: String? = nil,
         receiptNumber: String? = nil,
         paymentMethodData: UpdateOrderRequestPaymentMethodData? = nil,
@@ -11242,14 +11516,14 @@ public struct UpdateProductRequest: Codable, Sendable, Equatable {
 
 /// Typed Inttegro request parameters.
 public struct UpdatePurchaseIntentRequest: Codable, Sendable, Equatable {
-    public var expiresAt: String?
+    public var expiresAt: Date?
     public var id: String?
     public var quantity: UpdatePurchaseIntentRequestQuantity?
     public var purchaseIntentId: String?
     public var reactivate: Bool?
 
     public init(
-        expiresAt: String? = nil,
+        expiresAt: Date? = nil,
         id: String? = nil,
         quantity: UpdatePurchaseIntentRequestQuantity? = nil,
         purchaseIntentId: String? = nil,
@@ -11318,8 +11592,8 @@ public struct UpdatedProduct: Codable, Sendable, Equatable {
     public var dimensions: ProductDimensions?
     public var prices: [ProductPriceSummary]?
     public var unitDim: String?
-    public var createdAt: String
-    public var updatedAt: String?
+    public var createdAt: Date
+    public var updatedAt: Date?
 
     public init(
         id: String,
@@ -11334,8 +11608,8 @@ public struct UpdatedProduct: Codable, Sendable, Equatable {
         dimensions: ProductDimensions? = nil,
         prices: [ProductPriceSummary]? = nil,
         unitDim: String? = nil,
-        createdAt: String,
-        updatedAt: String? = nil
+        createdAt: Date,
+        updatedAt: Date? = nil
     ) {
         self.id = id
         self.name = name
@@ -11409,13 +11683,13 @@ public struct UploadRequest: Codable, Sendable, Equatable {
     public var canceledBy: UploadRequestActor?
     public var customData: CustomData?
     public var metadata: FileMetadata?
-    public var createdAt: String
-    public var updatedAt: String
-    public var expiresAt: String
-    public var uploadingAt: String?
-    public var fulfilledAt: String?
-    public var expiredAt: String?
-    public var canceledAt: String?
+    public var createdAt: Date
+    public var updatedAt: Date
+    public var expiresAt: Date
+    public var uploadingAt: Date?
+    public var fulfilledAt: Date?
+    public var expiredAt: Date?
+    public var canceledAt: Date?
     public var attempt: UploadRequestAttempt?
 
     public init(
@@ -11436,13 +11710,13 @@ public struct UploadRequest: Codable, Sendable, Equatable {
         canceledBy: UploadRequestActor? = nil,
         customData: CustomData? = nil,
         metadata: FileMetadata? = nil,
-        createdAt: String,
-        updatedAt: String,
-        expiresAt: String,
-        uploadingAt: String? = nil,
-        fulfilledAt: String? = nil,
-        expiredAt: String? = nil,
-        canceledAt: String? = nil,
+        createdAt: Date,
+        updatedAt: Date,
+        expiresAt: Date,
+        uploadingAt: Date? = nil,
+        fulfilledAt: Date? = nil,
+        expiredAt: Date? = nil,
+        canceledAt: Date? = nil,
         attempt: UploadRequestAttempt? = nil
     ) {
         self.id = id
@@ -11523,33 +11797,33 @@ public struct UploadRequestActor: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct UploadRequestAttempt: Codable, Sendable, Equatable {
-    public var attemptedAt: String
+    public var attemptedAt: Date
     public var contentType: String?
     public var declaredSize: Int?
     public var error: UploadRequestLatestError?
-    public var failedAt: String?
+    public var failedAt: Date?
     public var fileId: String?
     public var filename: String?
     public var id: String
     public var ordinal: Int
     public var review: UploadRequestReview?
     public var status: String
-    public var succeededAt: String?
+    public var succeededAt: Date?
     public var uploadRequestId: String
 
     public init(
-        attemptedAt: String,
+        attemptedAt: Date,
         contentType: String? = nil,
         declaredSize: Int? = nil,
         error: UploadRequestLatestError? = nil,
-        failedAt: String? = nil,
+        failedAt: Date? = nil,
         fileId: String? = nil,
         filename: String? = nil,
         id: String,
         ordinal: Int,
         review: UploadRequestReview? = nil,
         status: String,
-        succeededAt: String? = nil,
+        succeededAt: Date? = nil,
         uploadRequestId: String
     ) {
         self.attemptedAt = attemptedAt
@@ -11589,13 +11863,13 @@ public struct UploadRequestAttempts: Codable, Sendable, Equatable {
     public var maxAttempts: Int?
     public var attemptCount: Int
     public var failedAttemptCount: Int
-    public var lastAttemptedAt: String?
+    public var lastAttemptedAt: Date?
 
     public init(
         maxAttempts: Int? = nil,
         attemptCount: Int,
         failedAttemptCount: Int,
-        lastAttemptedAt: String? = nil
+        lastAttemptedAt: Date? = nil
     ) {
         self.maxAttempts = maxAttempts
         self.attemptCount = attemptCount
@@ -11748,14 +12022,14 @@ public struct UploadRequestLatestError: Codable, Sendable, Equatable {
     public var param: String?
     public var message: String?
     public var retryable: Bool?
-    public var at: String?
+    public var at: Date?
 
     public init(
         code: String? = nil,
         param: String? = nil,
         message: String? = nil,
         retryable: Bool? = nil,
-        at: String? = nil
+        at: Date? = nil
     ) {
         self.code = code
         self.param = param
@@ -11790,21 +12064,21 @@ public struct UploadRequestPage: Codable, Sendable, Equatable {
 
 /// Typed Inttegro domain value.
 public struct UploadRequestReview: Codable, Sendable, Equatable {
-    public var createdAt: String
+    public var createdAt: Date
     public var decision: UploadReviewDecision
     public var fileId: String?
     public var publicMessage: String?
     public var reasons: [UploadRequestReviewReason]?
-    public var reviewedAt: String
+    public var reviewedAt: Date
     public var type: UploadReviewType
 
     public init(
-        createdAt: String,
+        createdAt: Date,
         decision: UploadReviewDecision,
         fileId: String? = nil,
         publicMessage: String? = nil,
         reasons: [UploadRequestReviewReason]? = nil,
-        reviewedAt: String,
+        reviewedAt: Date,
         type: UploadReviewType
     ) {
         self.createdAt = createdAt

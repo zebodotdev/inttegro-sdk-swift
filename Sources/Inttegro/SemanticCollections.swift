@@ -161,10 +161,10 @@ public struct FinancialAccountVerificationRequest: Codable, Sendable, Equatable 
 }
 
 public struct FinancialAccountVerification: Codable, Sendable, Equatable {
-    public var initiatedAt: String
-    public var completedAt: String?
+    public var initiatedAt: Date
+    public var completedAt: Date?
     public var request: FinancialAccountVerificationRequest
-    public init(initiatedAt: String, completedAt: String? = nil, request: FinancialAccountVerificationRequest) {
+    public init(initiatedAt: Date, completedAt: Date? = nil, request: FinancialAccountVerificationRequest) {
         self.initiatedAt = initiatedAt
         self.completedAt = completedAt
         self.request = request
@@ -206,15 +206,6 @@ public struct VariantValues: Codable, Sendable, Equatable {
     public mutating func set(_ value: String, for name: String) { storage[name] = value }
     public mutating func remove(_ name: String) { storage.removeValue(forKey: name) }
     public init(from decoder: Decoder) throws { storage = try [String: String](from: decoder) }
-    public func encode(to encoder: Encoder) throws { try storage.encode(to: encoder) }
-}
-
-public struct BalanceSnapshot: Codable, Sendable, Equatable {
-    private let storage: [String: CurrencyBalanceSnapshot]
-    public init(_ values: [String: CurrencyBalanceSnapshot] = [:]) { storage = values }
-    public subscript(currency: String) -> CurrencyBalanceSnapshot? { storage[currency] }
-    public var values: [String: CurrencyBalanceSnapshot] { storage }
-    public init(from decoder: Decoder) throws { storage = try [String: CurrencyBalanceSnapshot](from: decoder) }
     public func encode(to encoder: Encoder) throws { try storage.encode(to: encoder) }
 }
 
