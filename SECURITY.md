@@ -7,5 +7,5 @@ newest release before reporting an issue that may already be fixed.
 
 ## Reporting a vulnerability
 
-Do not open a public issue. Use [GitHub private vulnerability reporting](https://github.com/zebodotdev/inttegro-sdk-swift/security/advisories/new)
+Do not open a public issue. Use [GitHub private vulnerability reporting](https://github.com/inttegro/inttegro-sdk-swift/security/advisories/new)
 and include the affected version, impact, reproduction steps, and any suggested remediation.

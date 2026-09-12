@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   release:
-    if: github.repository == 'zebodotdev/inttegro-sdk-swift'
+    if: github.repository == 'inttegro/inttegro-sdk-swift'
     runs-on: macos-15
     timeout-minutes: 30
     environment: release

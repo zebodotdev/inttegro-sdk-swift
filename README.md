@@ -5,7 +5,7 @@ the native payment-sheet SDK and is suitable for Swift services on macOS and Lin
 Never embed a server API key in an iOS application; use the native payment-sheet
 SDK for customer-facing apps.
 
-Add `https://github.com/zebodotdev/inttegro-sdk-swift` as a Swift Package Manager
+Add `https://github.com/inttegro/inttegro-sdk-swift` as a Swift Package Manager
 dependency and link the `Inttegro` product.
 
 ```swift
